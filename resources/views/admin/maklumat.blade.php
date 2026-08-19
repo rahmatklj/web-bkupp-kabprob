@@ -1,0 +1,79 @@
+@extends('admin.layout')
+
+@section('page_title', 'Kelola Maklumat Pelayanan')
+
+@section('content')
+<div class="max-w-4xl space-y-6 mx-auto">
+
+    <!-- Header Card -->
+    <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl shrink-0">
+                <i class="fas fa-scroll"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-lg">Kelola Maklumat Pelayanan</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Kelola teks komitmen maklumat pelayanan publik dan poster scan resmi DKUPP.</p>
+            </div>
+        </div>
+        <a href="{{ route('home') }}" target="_blank" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shrink-0 transition-colors flex items-center gap-1.5">
+            <i class="fas fa-external-link-alt"></i> Preview Web Utama
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-2">
+            <i class="fas fa-check-circle text-base"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    <!-- Form Maklumat Pelayanan -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <form action="{{ route('admin.maklumat.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+            @csrf
+
+            <!-- Teks Maklumat -->
+            <div class="space-y-1.5">
+                <label class="font-extrabold text-slate-800 block text-xs">
+                    <i class="fas fa-quote-left text-emerald-600 me-1"></i> Teks Pernyataan Maklumat Pelayanan <span class="text-rose-500">*</span>
+                </label>
+                <textarea name="maklumat_text" rows="4" required placeholder="Isi teks komitmen maklumat pelayanan..."
+                          class="w-full px-4 py-3 rounded-2xl border border-slate-300 font-bold text-slate-800 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none leading-relaxed">{{ old('maklumat_text', $maklumatText) }}</textarea>
+            </div>
+
+            <!-- Upload File Poster Scan & URL -->
+            <div class="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <label class="font-extrabold text-slate-800 block text-xs">
+                    <i class="fas fa-image text-emerald-600 me-1"></i> Poster Scan / Foto Banner Maklumat Pelayanan
+                </label>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Upload File Foto / Poster (Dari HP / Komputer)</label>
+                        <input type="file" name="maklumat_file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-500 me-1"></i> Atau Masukkan URL Gambar Poster</label>
+                        <input type="text" name="maklumat_image" value="{{ old('maklumat_image', $maklumatImage ?? '') }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none bg-white">
+                    </div>
+                </div>
+
+                @if(!empty($maklumatImage))
+                    <div class="mt-2 p-3 bg-white rounded-xl border border-slate-200 inline-flex flex-col gap-2">
+                        <span class="text-[11px] font-bold text-slate-500">Preview Poster Scan Saat Ini:</span>
+                        <img src="{{ $maklumatImage }}" alt="Poster Maklumat" class="max-h-56 w-auto object-contain rounded border border-slate-200 bg-slate-50 p-1">
+                    </div>
+                @endif
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end">
+                <button type="submit" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-extrabold text-xs shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-save"></i> Simpan Maklumat Pelayanan
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+@endsection
