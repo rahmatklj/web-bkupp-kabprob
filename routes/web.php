@@ -17,6 +17,13 @@ Route::get('/informasi/{slug}', [PublicController::class, 'newsDetail'])->name('
 Route::get('/berita/{slug}', [PublicController::class, 'newsDetail'])->name('berita.detail');
 Route::get('/halaman/{slug}', [PublicController::class, 'page'])->name('page');
 
+Route::get('/', [PublicController::class, 'index'])->name('home');
+Route::get('/informasi', [PublicController::class, 'informasi'])->name('informasi');
+Route::get('/berita', [PublicController::class, 'informasi'])->name('berita');
+Route::get('/informasi/{slug}', [PublicController::class, 'newsDetail'])->name('news.detail');
+Route::get('/berita/{slug}', [PublicController::class, 'newsDetail'])->name('berita.detail');
+Route::get('/halaman/{slug}', [PublicController::class, 'page'])->name('page');
+
 // DKUPP Specific Public Routes
 Route::get('/katalog-umkm', [PublicController::class, 'umkmKatalog'])->name('umkm.katalog');
 Route::get('/katalog-umkm/{slug}', [PublicController::class, 'umkmDetail'])->name('umkm.detail');
