@@ -17,6 +17,7 @@ use App\Models\UmkmProduct;
 use App\Models\MarketPrice;
 use App\Models\Service;
 use App\Models\Gallery;
+use App\Models\ActivityLog;
 
 class DatabaseSeeder extends Seeder
 {
@@ -668,6 +669,36 @@ class DatabaseSeeder extends Seeder
             'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             'caption' => 'Panduan dan tutorial pendaftaran katalog produk UMKM secara online melalui platform SIMADU SAE DKUPP.',
             'is_active' => true,
+        ]);
+
+        // 14. Sample Activity Logs
+        ActivityLog::truncate();
+
+        ActivityLog::create([
+            'user_name' => 'Administrator DKUPP',
+            'user_role' => 'Super Admin',
+            'action' => 'LOGIN',
+            'module' => 'Autentifikasi Sistem',
+            'description' => 'User "Administrator DKUPP" berhasil masuk ke Control Panel Admin CMS.',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        ActivityLog::create([
+            'user_name' => 'Staf Pelayanan DKUPP',
+            'user_role' => 'Anggota Staf',
+            'action' => 'LOGIN',
+            'module' => 'Autentifikasi Sistem',
+            'description' => 'User "Staf Pelayanan DKUPP" berhasil masuk ke Control Panel Admin CMS.',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        ActivityLog::create([
+            'user_name' => 'Administrator DKUPP',
+            'user_role' => 'Super Admin',
+            'action' => 'UPDATE',
+            'module' => 'Portal Links',
+            'description' => 'Memperbarui konfigurasi nomor WhatsApp resmi Lapor Hallo SAE DKUPP.',
+            'ip_address' => '127.0.0.1',
         ]);
     }
 }
