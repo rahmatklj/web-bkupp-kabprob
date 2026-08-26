@@ -16,6 +16,7 @@ use App\Models\Page;
 use App\Models\UmkmProduct;
 use App\Models\MarketPrice;
 use App\Models\Service;
+use App\Models\Gallery;
 
 class DatabaseSeeder extends Seeder
 {
@@ -627,6 +628,45 @@ class DatabaseSeeder extends Seeder
             'parent_id' => $kadin->id,
             'photo' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop',
             'order' => 6,
+            'is_active' => true,
+        ]);
+
+        // 13. Sample Gallery Photo & Video DKUPP
+        Gallery::truncate();
+
+        Gallery::create([
+            'title' => 'Pelatihan Bimbingan Teknis Digital Marketing & Legalisasi Usaha NIB 100 UMKM Probolinggo',
+            'type' => 'image',
+            'category' => 'Dokumentasi Kegiatan',
+            'file_path' => 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop',
+            'caption' => 'Pelaksanaan Bimbingan Teknis Pemasaran Digital dan Fasilitasi Legalitas NIB Gratis bagi Pelaku Usaha Mikro Kabupaten Probolinggo.',
+            'is_active' => true,
+        ]);
+
+        Gallery::create([
+            'title' => 'Pengujian dan Tera Ulang Alat Ukur Timbang Pasar Kraksaan oleh Petugas Metrologi Legal DKUPP',
+            'type' => 'image',
+            'category' => 'Metrologi Legal',
+            'file_path' => 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
+            'caption' => 'Kegiatan pengujian keabsahan takaran dan tera ulang timbangan pedagang pasar demi terwujudnya perlindungan konsumen.',
+            'is_active' => true,
+        ]);
+
+        Gallery::create([
+            'title' => 'Profil Singkat & Terobosan Inovasi Pelayanan Publik DKUPP Kabupaten Probolinggo',
+            'type' => 'video',
+            'category' => 'Dokumentasi Kegiatan',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'caption' => 'Video profil dan pengenalan program inovasi pemberdayaan UMKM SIMADU SAE serta pelayanan cepat DKUPP Kabupaten Probolinggo.',
+            'is_active' => true,
+        ]);
+
+        Gallery::create([
+            'title' => 'Sosialisasi Pendaftaran & Pemasaran Produk UMKM Lokal di Portal SIMADU SAE',
+            'type' => 'video',
+            'category' => 'Sosialisasi',
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'caption' => 'Panduan dan tutorial pendaftaran katalog produk UMKM secara online melalui platform SIMADU SAE DKUPP.',
             'is_active' => true,
         ]);
     }
