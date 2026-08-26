@@ -100,19 +100,27 @@ class PublicController extends Controller
     public function index()
     {
         $data = $this->getCommonData();
-        
+
         $sliders = HeroSlider::where('is_active', true)->orderBy('order', 'asc')->get();
         $latestNews = NewsItem::orderBy('published_at', 'desc')->take(2)->get();
         $popularNews = NewsItem::orderBy('views', 'desc')->take(5)->get();
         $sidebarWidgets = SidebarWidget::where('is_active', true)->orderBy('order', 'asc')->get();
         $relatedLinks = RelatedLink::where('is_active', true)->orderBy('order', 'asc')->get();
-        
+
         // DKUPP specific featured data
         $featuredUmkm = UmkmProduct::where('is_featured', true)->take(6)->get();
         $marketPrices = MarketPrice::orderBy('commodity_name', 'asc')->get();
         $featuredServices = Service::where('is_active', true)->take(6)->get();
-        $videos = \App\Models\Gallery::where('type', 'video')->where('is_active', true)->orderBy('created_at', 'desc')->take(2)->get();
-        $photoGalleries = \App\Models\Gallery::where('type', 'image')->where('is_active', true)->orderBy('created_at', 'desc')->take(2)->get();
+        $videos = \App\Models\Gallery::where('type', 'video')
+            ->where(function($q) { $q->where('is_active', true)->orWhereNull('is_active'); })
+            ->orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
+        $photoGalleries = \App\Models\Gallery::where('type', 'image')
+            ->where(function($q) { $q->where('is_active', true)->orWhereNull('is_active'); })
+            ->orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
 
         return view('public.index', array_merge($data, compact(
             'sliders', 'latestNews', 'popularNews', 'sidebarWidgets', 'relatedLinks', 'featuredUmkm', 'marketPrices', 'featuredServices', 'videos', 'photoGalleries'
@@ -390,8 +398,14 @@ class PublicController extends Controller
     public function galeri()
     {
         $data = $this->getCommonData();
-        $imageGalleries = \App\Models\Gallery::where('type', 'image')->where('is_active', true)->orderBy('created_at', 'desc')->get();
-        $videoGalleries = \App\Models\Gallery::where('type', 'video')->where('is_active', true)->orderBy('created_at', 'desc')->get();
+        $imageGalleries = \App\Models\Gallery::where('type', 'image')
+            ->where(function($q) { $q->where('is_active', true)->orWhereNull('is_active'); })
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $videoGalleries = \App\Models\Gallery::where('type', 'video')
+            ->where(function($q) { $q->where('is_active', true)->orWhereNull('is_active'); })
+            ->orderBy('created_at', 'desc')
+            ->get();
         $newsWithImages = NewsItem::whereNotNull('image_url')->take(12)->get();
         return view('public.galeri', array_merge($data, compact('imageGalleries', 'videoGalleries', 'newsWithImages')));
     }
