@@ -235,11 +235,6 @@
                                class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.users') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
                                 <i class="fas fa-users-cog text-xs text-indigo-400"></i> Users & Roles Admin
                             </a>
-
-                            <a href="{{ route('admin.activity-logs') }}" 
-                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.activity-logs*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
-                                <i class="fas fa-history text-xs text-yellow-400"></i> Log Aktivitas Sistem
-                            </a>
                         </div>
                     </div>
                 @endif
