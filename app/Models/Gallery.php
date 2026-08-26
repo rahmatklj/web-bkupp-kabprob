@@ -12,6 +12,7 @@ class Gallery extends Model
     protected $fillable = [
         'title',
         'type',
+        'category',
         'file_path',
         'youtube_url',
         'caption',

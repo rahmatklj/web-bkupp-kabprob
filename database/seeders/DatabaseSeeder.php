@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
         NavigationMenu::create(['title' => 'Galeri Foto & Video', 'url' => '/galeri', 'parent_id' => $informasi->id, 'order' => 5]);
 
         $hubungi = NavigationMenu::create(['title' => 'HUBUNGI', 'url' => '#', 'order' => 6]);
-        NavigationMenu::create(['title' => 'Lapor SP4N', 'url' => '/lapor', 'parent_id' => $hubungi->id, 'order' => 1]);
+        NavigationMenu::create(['title' => 'SP4N LAPOR!', 'url' => '/lapor', 'parent_id' => $hubungi->id, 'order' => 1]);
         NavigationMenu::create(['title' => 'Kontak Kami', 'url' => '/kontak', 'parent_id' => $hubungi->id, 'order' => 2]);
 
         NavigationMenu::create(['title' => 'LOGIN', 'url' => '/login', 'order' => 7]);

@@ -19,6 +19,7 @@ class Service extends Model
         'procedure',
         'service_time',
         'cost',
+        'location',
         'external_url',
         'is_active'
     ];

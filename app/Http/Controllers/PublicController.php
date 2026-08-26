@@ -35,7 +35,7 @@ class PublicController extends Controller
             'address'        => 'Jl. Raya Panglima Sudirman No. 134 / Loket MPP Kraksaan, Kabupaten Probolinggo',
             'logo_frontend'  => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lambang_Kabupaten_Probolinggo.jpg/440px-Lambang_Kabupaten_Probolinggo.jpg',
             'logo_backend'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lambang_Kabupaten_Probolinggo.jpg/440px-Lambang_Kabupaten_Probolinggo.jpg',
-            'logo_berakhlak' => 'https://diskominfo.probolinggokab.go.id/frontend/images/img-berakhlak.png',
+            'logo_berakhlak' => '/uploads/settings/logo_berakhlak.png',
         ];
 
         $settings = [];
@@ -55,6 +55,44 @@ class PublicController extends Controller
             }])
             ->orderBy('order', 'asc')
             ->get();
+
+        // 1. WhatsApp Resmi CS DKUPP (Digunakan pada Footer Media Sosial & Halaman Kontak)
+        $dkuppPhone = $settings['phone'] ?? '081234567890';
+        $dkuppCustomWa = $settingsRaw['dkupp_whatsapp_url'] ?? '';
+
+        if (!empty($dkuppCustomWa) && str_starts_with($dkuppCustomWa, 'http') && !str_contains($dkuppCustomWa, 'lapor.go.id')) {
+            $finalDkuppWa = $dkuppCustomWa;
+        } else {
+            $dkuppClean = preg_replace('/[^0-9]/', '', $dkuppPhone);
+            if (str_starts_with($dkuppClean, '0')) {
+                $dkuppClean = '62' . substr($dkuppClean, 1);
+            }
+            $finalDkuppWa = 'https://wa.me/' . ($dkuppClean ?: '6281234567890');
+        }
+        if (!str_contains($finalDkuppWa, 'text=')) {
+            $finalDkuppWa .= (str_contains($finalDkuppWa, '?') ? '&' : '?') . 'text=' . urlencode('Halo DKUPP Kabupaten Probolinggo, saya ingin menyampaikan pengaduan/konsultasi.');
+        }
+        $settings['dkupp_whatsapp_url'] = $finalDkuppWa;
+
+        // 2. WhatsApp Pengaduan Hallo SAE (Digunakan pada Card Pengaduan HalloSAE Portal 5)
+        $halloNum = $settings['whatsapp_number'] ?? '081234567890';
+        $halloCustomWa = $settingsRaw['whatsapp_url'] ?? '';
+        $halloMsg = $settings['whatsapp_default_message'] ?? 'Halo Lapor Hallo SAE Kabupaten Probolinggo, saya ingin menyampaikan pengaduan.';
+
+        if (!empty($halloCustomWa) && str_starts_with($halloCustomWa, 'http') && !str_contains($halloCustomWa, 'lapor.go.id')) {
+            $finalHalloWa = $halloCustomWa;
+        } else {
+            $halloClean = preg_replace('/[^0-9]/', '', $halloNum);
+            if (str_starts_with($halloClean, '0')) {
+                $halloClean = '62' . substr($halloClean, 1);
+            }
+            $finalHalloWa = 'https://wa.me/' . ($halloClean ?: '6281234567890');
+        }
+        if (!str_contains($finalHalloWa, 'text=')) {
+            $finalHalloWa .= (str_contains($finalHalloWa, '?') ? '&' : '?') . 'text=' . urlencode($halloMsg);
+        }
+        $settings['hallosae_whatsapp_url'] = $finalHalloWa;
+        $settings['whatsapp_url'] = $finalHalloWa;
             
         return compact('settings', 'navMenus');
     }
@@ -236,7 +274,9 @@ class PublicController extends Controller
         }
 
         $documents = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-        $categories = ['Perencanaan Kinerja', 'Pengukuran Kinerja', 'Pelaporan Kinerja', 'Evaluasi Kinerja'];
+        $dbCategories = PublicDocument::distinct()->pluck('category')->filter()->values()->toArray();
+        $defaultCategories = ['Perencanaan Kinerja', 'Pengukuran Kinerja', 'Pelaporan Kinerja', 'Evaluasi Kinerja'];
+        $categories = array_unique(array_merge($defaultCategories, $dbCategories));
 
         return view('public.dokumen', array_merge($data, compact('documents', 'categories')));
     }
@@ -289,29 +329,26 @@ class PublicController extends Controller
         $cleanPath = ltrim(str_replace('\\', '/', $fileUrl), '/');
         $fullPath = public_path($cleanPath);
 
+        if (!file_exists($fullPath) || !is_file($fullPath)) {
+            $fullPath = storage_path('app/public/' . str_replace('storage/', '', $cleanPath));
+        }
+
         if (file_exists($fullPath) && is_file($fullPath)) {
             $extension = pathinfo($fullPath, PATHINFO_EXTENSION) ?: 'pdf';
             $downloadFileName = \Illuminate\Support\Str::slug($document->title) . '.' . $extension;
-            return response()->download($fullPath, $downloadFileName, [
+
+            $headers = [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $downloadFileName . '"',
-                'Cache-Control' => 'no-cache, must-revalidate',
-            ]);
+                'Content-Disposition' => 'inline; filename="' . $downloadFileName . '"',
+                'Content-Length' => filesize($fullPath),
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'public, max-age=3600',
+            ];
+
+            return response()->file($fullPath, $headers);
         }
 
-        // 3. Fallback check for storage public directory
-        $storagePath = storage_path('app/public/' . str_replace('storage/', '', $cleanPath));
-        if (file_exists($storagePath) && is_file($storagePath)) {
-            $extension = pathinfo($storagePath, PATHINFO_EXTENSION) ?: 'pdf';
-            $downloadFileName = \Illuminate\Support\Str::slug($document->title) . '.' . $extension;
-            return response()->download($storagePath, $downloadFileName, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $downloadFileName . '"',
-                'Cache-Control' => 'no-cache, must-revalidate',
-            ]);
-        }
-
-        // 4. Final fallback: asset URL
+        // 3. Final fallback: asset URL
         return redirect()->to(asset($cleanPath));
     }
 

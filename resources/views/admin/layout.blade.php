@@ -73,110 +73,182 @@
                 </button>
             </div>
 
-            <!-- Sidebar Navigation Menu Links -->
-            <nav class="p-4 space-y-1 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
-                <div class="text-[10px] text-slate-500 uppercase tracking-widest px-3 py-2 font-bold">Navigasi Utama</div>
+            <!-- Sidebar Navigation Menu Links with Interactive Dropdowns -->
+            <nav class="p-3 space-y-2 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]"
+                 x-data="{ 
+                    openContent: {{ (request()->routeIs('admin.news*') || request()->routeIs('admin.documents*') || request()->routeIs('admin.services*') || request()->routeIs('admin.categories*') || request()->routeIs('admin.gallery*')) ? 'true' : 'true' }},
+                    openPortal: {{ (request()->routeIs('admin.portal-links*') || request()->routeIs('admin.market-prices*') || request()->routeIs('admin.umkm*') || request()->routeIs('admin.ppid*') || request()->routeIs('admin.sp4n-lapor*') || request()->routeIs('admin.whatsapp*') || request()->routeIs('admin.maklumat*') || request()->routeIs('admin.qr-code*') || request()->routeIs('admin.sliders*') || request()->routeIs('admin.links*')) ? 'true' : 'false' }},
+                    openWeb: {{ (request()->routeIs('admin.menus*') || request()->routeIs('admin.pages*') || request()->routeIs('admin.org-members*') || request()->routeIs('admin.contact-info*') || request()->routeIs('admin.social-media*') || request()->routeIs('admin.settings*')) ? 'true' : 'false' }},
+                    openSystem: {{ (request()->routeIs('admin.messages*') || request()->routeIs('admin.users*') || request()->routeIs('admin.activity-logs*')) ? 'true' : 'false' }}
+                 }">
                 
+                <!-- Dashboard Direct Link -->
                 <a href="{{ route('admin.dashboard') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-chart-pie text-sm"></i> Dashboard Overview
+                    <i class="fas fa-chart-pie text-sm text-emerald-400"></i>
+                    <span>Dashboard Overview</span>
                 </a>
 
-                <a href="{{ route('admin.umkm') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.umkm') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-globe text-sm text-emerald-400"></i> SIMADU SAE (Link Website UMKM)
-                </a>
+                <!-- MENU GROUP 1: KELOLA KONTEN & LAYANAN (STAF & SUPER ADMIN) -->
+                <div class="space-y-1">
+                    <button type="button" @click="openContent = !openContent" 
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-bold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fas fa-folder-open text-emerald-400 text-sm"></i>
+                            <span>Kelola Konten & Layanan</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openContent }"></i>
+                    </button>
 
-                <a href="{{ route('admin.market-prices') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.market-prices') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-shopping-basket text-sm text-amber-400"></i> Monitoring Harga Pasar
-                </a>
+                    <div x-show="openContent" x-cloak class="pl-3.5 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-3.5">
+                        <a href="{{ route('admin.news') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.news*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-newspaper text-xs text-orange-400"></i> Berita & Informasi
+                        </a>
 
-                <a href="{{ route('admin.ppid') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.ppid') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-info-circle text-sm text-sky-400"></i> Kelola Link Website PPID
-                </a>
+                        <a href="{{ route('admin.documents') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.documents*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-file-pdf text-xs text-rose-400"></i> Dokumen Kinerja PDF
+                        </a>
 
-                <a href="{{ route('admin.maklumat') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.maklumat') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-scroll text-sm text-amber-400"></i> Kelola Maklumat Pelayanan
-                </a>
+                        <a href="{{ route('admin.services') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.services*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-handshake text-xs text-emerald-400"></i> Layanan Publik & SOP
+                        </a>
 
-                <a href="{{ route('admin.qr-code') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.qr-code') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-qrcode text-sm text-emerald-400"></i> Kelola Kode QR & SKM
-                </a>
+                        <a href="{{ route('admin.categories') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.categories*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-tags text-xs text-amber-400"></i> Master Kategori
+                        </a>
 
-                <a href="{{ route('admin.documents') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.documents') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-file-alt text-sm text-blue-400"></i> CRUD Dokumen Kinerja
-                </a>
+                        <a href="{{ route('admin.gallery') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.gallery*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-photo-video text-xs text-pink-400"></i> Galeri Foto & Video
+                        </a>
 
-                <a href="{{ route('admin.news') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.news') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-newspaper text-sm text-purple-400"></i> CRUD Berita & Informasi
-                </a>
-
-                <a href="{{ route('admin.gallery') }}" 
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.gallery*') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                    <i class="fas fa-photo-video text-sm text-pink-400"></i> CRUD Galeri Foto & Video
-                </a>
+                        <a href="{{ route('admin.activity-logs') }}" 
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.activity-logs*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                            <i class="fas fa-history text-xs text-yellow-400"></i> Log Aktivitas Sistem
+                        </a>
+                    </div>
+                </div>
 
                 <!-- RESTRICTED TO SUPER ADMIN ONLY -->
                 @if(auth()->user()->isSuperAdmin())
-                    <div class="pt-4 text-[10px] text-slate-500 uppercase tracking-widest px-3 py-1 font-bold">Super Admin Controls</div>
+                    
+                    <!-- MENU GROUP 2: PORTAL & INTEGRASI PUBLIK -->
+                    <div class="space-y-1 pt-1">
+                        <button type="button" @click="openPortal = !openPortal" 
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-bold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fas fa-globe text-cyan-400 text-sm"></i>
+                                <span>Portal & Integrasi Publik</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openPortal }"></i>
+                        </button>
 
-                    <a href="{{ route('admin.sliders') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.sliders') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-images text-sm text-amber-400"></i> CRUD Banner Sliders
-                    </a>
+                        <div x-show="openPortal" x-cloak class="pl-3.5 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-3.5">
+                            <a href="{{ route('admin.portal-links') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ (request()->routeIs('admin.portal-links*') || request()->routeIs('admin.market-prices*') || request()->routeIs('admin.umkm*') || request()->routeIs('admin.ppid*') || request()->routeIs('admin.sp4n-lapor*') || request()->routeIs('admin.whatsapp*')) ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-network-wired text-xs text-emerald-400"></i> Link Portal & Integrasi
+                            </a>
 
-                    <a href="{{ route('admin.menus') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.menus') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-bars text-sm text-cyan-400"></i> CRUD Menu Header Topbar
-                    </a>
+                            <a href="{{ route('admin.maklumat') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.maklumat') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-scroll text-xs text-amber-400"></i> Maklumat Pelayanan
+                            </a>
 
-                    <a href="{{ route('admin.pages') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ (request()->routeIs('admin.pages*') || request()->routeIs('admin.org-members*')) ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-sitemap text-sm text-rose-400"></i> CRUD Profil & Struktur Organisasi
-                    </a>
+                            <a href="{{ route('admin.qr-code') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.qr-code') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-qrcode text-xs text-emerald-400"></i> Kode QR & SKM
+                            </a>
 
-                    <a href="{{ route('admin.widgets') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.widgets') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-th-large text-sm text-emerald-400"></i> CRUD Widgets Sidebar
-                    </a>
+                            <a href="{{ route('admin.sliders') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.sliders') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-images text-xs text-yellow-400"></i> Banner Sliders
+                            </a>
 
-                    <a href="{{ route('admin.links') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.links') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-link text-sm text-teal-400"></i> CRUD Tautan Terkait Logo
-                    </a>
+                            <a href="{{ route('admin.links') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.links') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-link text-xs text-teal-400"></i> Tautan Terkait Logo
+                            </a>
+                        </div>
+                    </div>
 
-                    <a href="{{ route('admin.messages') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.messages') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-bullhorn text-sm text-red-400"></i> Laporan Masuk / Kontak
-                    </a>
+                    <!-- MENU GROUP 3: PENGATURAN WEB & STRUKTUR -->
+                    <div class="space-y-1 pt-1">
+                        <button type="button" @click="openWeb = !openWeb" 
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-bold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fas fa-sliders-h text-amber-400 text-sm"></i>
+                                <span>Pengaturan Web & Struktur</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openWeb }"></i>
+                        </button>
 
-                    <a href="{{ route('admin.users') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.users') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-users-cog text-sm text-indigo-400"></i> CRUD Users & Roles
-                    </a>
+                        <div x-show="openWeb" x-cloak class="pl-3.5 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-3.5">
+                            <a href="{{ route('admin.menus') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.menus') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-bars text-xs text-cyan-400"></i> Menu Header Topbar
+                            </a>
 
-                    <a href="{{ route('admin.activity-logs') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.activity-logs*') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-history text-sm text-yellow-400"></i> Log Aktivitas Sistem
-                    </a>
+                            <a href="{{ route('admin.pages') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ (request()->routeIs('admin.pages*') || request()->routeIs('admin.org-members*')) ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-sitemap text-xs text-rose-400"></i> Profil & Struktur Organisasi
+                            </a>
 
-                    <a href="{{ route('admin.settings') }}" 
-                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.settings') ? 'bg-emerald-700 text-white shadow-md font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
-                        <i class="fas fa-cog text-sm text-slate-400"></i> Pengaturan Website
-                    </a>
+                            <a href="{{ route('admin.contact-info') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.contact-info*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-map-marker-alt text-xs text-emerald-400"></i> Alamat & Kontak Office
+                            </a>
+
+                            <a href="{{ route('admin.social-media') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.social-media*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-share-alt text-xs text-sky-400"></i> Media Sosial Resmi
+                            </a>
+
+                            <a href="{{ route('admin.settings') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.settings') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-cog text-xs text-slate-400"></i> Pengaturan Website & SEO
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- MENU GROUP 4: SISTEM & HAK AKSES -->
+                    <div class="space-y-1 pt-1">
+                        <button type="button" @click="openSystem = !openSystem" 
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-bold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fas fa-user-shield text-indigo-400 text-sm"></i>
+                                <span>Sistem & Hak Akses</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openSystem }"></i>
+                        </button>
+
+                        <div x-show="openSystem" x-cloak class="pl-3.5 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-3.5">
+                            <a href="{{ route('admin.messages') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.messages') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-bullhorn text-xs text-red-400"></i> Laporan Masuk / Kontak
+                            </a>
+
+                            <a href="{{ route('admin.users') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.users') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-users-cog text-xs text-indigo-400"></i> Users & Roles Admin
+                            </a>
+
+                            <a href="{{ route('admin.activity-logs') }}" 
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.activity-logs*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                                <i class="fas fa-history text-xs text-yellow-400"></i> Log Aktivitas Sistem
+                            </a>
+                        </div>
+                    </div>
                 @endif
 
-                <div class="pt-4 text-[10px] text-slate-500 uppercase tracking-widest px-3 py-1 font-bold">Public Portal</div>
-                
-                <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-external-link-alt text-sm"></i> Lihat Website Utama
-                </a>
+                <div class="pt-3 border-t border-slate-800/80">
+                    <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-semibold">
+                        <i class="fas fa-external-link-alt text-xs"></i> Lihat Website Utama
+                    </a>
+                </div>
             </nav>
         </div>
 

@@ -86,8 +86,8 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="px-4 py-3.5 whitespace-nowrap text-slate-500 font-mono text-[11px]">
-                                <div>{{ $log->created_at->format('d M Y') }}</div>
-                                <div class="text-[10px] text-slate-400 font-bold">{{ $log->created_at->format('H:i:s') }} WIB</div>
+                                <div>{{ $log->created_at ? $log->created_at->format('d M Y') : '-' }}</div>
+                                <div class="text-[10px] text-slate-400 font-bold">{{ $log->created_at ? $log->created_at->format('H:i:s') : '-' }} WIB</div>
                             </td>
 
                             <td class="px-4 py-3.5 whitespace-nowrap">

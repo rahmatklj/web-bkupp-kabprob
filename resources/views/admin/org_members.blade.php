@@ -6,7 +6,21 @@
 <div x-data="{ 
     showModal: false, 
     editMode: false, 
-    currentMember: { id: null, name: '', position: '', type: 'personel', parent_id: '', photo: '', order: 1, is_active: true } 
+    currentMember: { id: null, name: '', position: '', type: 'personel', parent_id: '', photo: '', order: 1, is_active: true },
+    imageErrorMsg: null,
+    validateImageFile(e) {
+        this.imageErrorMsg = null;
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg', 'jpeg', 'png'].includes(ext)) {
+                const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
+                this.imageErrorMsg = msg;
+                alert(msg);
+                e.target.value = '';
+            }
+        }
+    }
 }" class="space-y-6">
 
     <!-- Tab Navigation Bar -->
@@ -143,7 +157,7 @@
                 <button @click="showModal = false" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg"><i class="fas fa-times text-base"></i></button>
             </div>
 
-            <form :action="editMode ? '/admin/org-members/' + currentMember.id : '{{ route('admin.org-members.store') }}'" method="POST" class="space-y-3.5 text-xs">
+            <form :action="editMode ? '/admin/org-members/' + currentMember.id : '{{ route('admin.org-members.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-3.5 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
@@ -161,31 +175,100 @@
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-extrabold text-slate-900 uppercase">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Tipe Anggota</label>
-                        <select name="type" x-model="currentMember.type" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-800">
-                            <option value="personel">Personel (Pejabat)</option>
-                            <option value="kelompok_fungsional">Kelompok Fungsional</option>
-                        </select>
+                <!-- Tipe Anggota & Atasan Grid (Minimalis & Compact) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" x-data="{ isCustomType: false, isCustomParent: false }">
+                    
+                    <!-- Tipe Anggota Field -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <i class="fas fa-tag text-emerald-600"></i> Tipe Anggota
+                            </label>
+                            <button type="button" @click="isCustomType = !isCustomType; if(isCustomType) currentMember.type = ''" 
+                                    class="text-[10px] font-extrabold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200/80 transition-all cursor-pointer">
+                                <span x-text="isCustomType ? '← Pilih List' : '+ Manual'"></span>
+                            </button>
+                        </div>
+                        
+                        <div x-show="!isCustomType">
+                            <select name="type" x-model="currentMember.type" 
+                                    @change="if($event.target.value === '__CUSTOM__') { isCustomType = true; currentMember.type = ''; }"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-800 bg-white text-xs shadow-2xs">
+                                <option value="personel">Personel (Pejabat)</option>
+                                <option value="kelompok_fungsional">Kelompok Fungsional</option>
+                                @if(isset($types))
+                                    @foreach($types as $t)
+                                        @if(!in_array($t, ['personel', 'kelompok_fungsional']))
+                                            <option value="{{ $t }}">{{ ucwords(str_replace('_', ' ', $t)) }}</option>
+                                        @endif
+                                    @endforeach
+                                @endif
+                                <option value="__CUSTOM__" class="font-bold text-emerald-700">+ Ketik Tipe Manual...</option>
+                            </select>
+                        </div>
+
+                        <div x-show="isCustomType" x-cloak>
+                            <input type="text" name="custom_type" x-model="currentMember.type" placeholder="Ketik tipe anggota baru..." 
+                                   class="w-full px-3 py-2 border border-emerald-400 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-emerald-50/50 font-bold text-slate-900 text-xs shadow-2xs">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Atasan (Parent Node)</label>
-                        <select name="parent_id" x-model="currentMember.parent_id" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-800">
-                            <option value="">Tidak Ada (Root - Kepala)</option>
-                            @foreach($members as $parentOpt)
-                                <option value="{{ $parentOpt->id }}">{{ $parentOpt->position }} ({{ $parentOpt->name ?: 'Fungsional' }})</option>
-                            @endforeach
-                        </select>
+                    <!-- Atasan (Parent Node) Field -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <i class="fas fa-sitemap text-emerald-600"></i> Atasan (Parent)
+                            </label>
+                            <button type="button" @click="isCustomParent = !isCustomParent; if(isCustomParent) currentMember.parent_id = ''" 
+                                    class="text-[10px] font-extrabold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200/80 transition-all cursor-pointer">
+                                <span x-text="isCustomParent ? '← Pilih List' : '+ Manual'"></span>
+                            </button>
+                        </div>
+                        
+                        <div x-show="!isCustomParent">
+                            <select name="parent_id" x-model="currentMember.parent_id" 
+                                    @change="if($event.target.value === '__CUSTOM__') { isCustomParent = true; currentMember.parent_id = ''; }"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-800 bg-white text-xs shadow-2xs">
+                                <option value="">Tidak Ada (Root - Kepala)</option>
+                                @foreach($members as $parentOpt)
+                                    <option value="{{ $parentOpt->id }}">{{ $parentOpt->position }} ({{ $parentOpt->name ?: 'Fungsional' }})</option>
+                                @endforeach
+                                <option value="__CUSTOM__" class="font-bold text-emerald-700">+ Ketik Atasan Manual...</option>
+                            </select>
+                        </div>
+
+                        <div x-show="isCustomParent" x-cloak>
+                            <input type="text" name="custom_parent" placeholder="Ketik nama/jabatan atasan..." 
+                                   class="w-full px-3 py-2 border border-emerald-400 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-emerald-50/50 font-bold text-slate-900 uppercase text-xs shadow-2xs">
+                        </div>
                     </div>
+
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Foto Pejabat (Avatar)</label>
-                    <input type="text" name="photo" x-model="currentMember.photo" placeholder="https://... atau /images/pejabat.jpg" 
-                           class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium">
-                    <p class="text-[10px] text-slate-400 mt-1">Masukkan URL foto atau gambar wajah pejabat. Foto ini akan tampil pada bagan struktur.</p>
+                <!-- Upload & URL Foto Avatar Pejabat -->
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                    <label class="block font-bold text-slate-800 text-xs">
+                        <i class="fas fa-camera text-emerald-600 me-1"></i> Foto / Avatar Pejabat
+                    </label>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Foto (Dari HP / Komputer)</label>
+                        <input type="file" name="photo_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" @change="validateImageFile($event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                        
+                        <!-- PEMBERITAHUAN GAGAL UPLOAD NON-JPG/PNG -->
+                        <template x-if="imageErrorMsg">
+                            <div class="mt-2.5 p-3 bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                                <i class="fas fa-exclamation-triangle text-rose-600 text-base shrink-0"></i>
+                                <span x-text="imageErrorMsg"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Gambar</label>
+                        <input type="text" name="photo" x-model="currentMember.photo" placeholder="https://... atau /images/pejabat.jpg" 
+                               class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium bg-white">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">

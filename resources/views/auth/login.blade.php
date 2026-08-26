@@ -28,47 +28,77 @@
 </head>
 <body class="bg-white min-h-screen font-sans text-slate-800 antialiased flex flex-col justify-between"
       x-data="{ 
-          email: '{{ old('email', '') }}', 
+          email: '{{ old('email', 'admin@dkupp.probolinggokab.go.id') }}', 
+          password: 'admin123',
           showPassword: false, 
           captchaCode: '{{ $captchaData['code'] }}', 
           captchaSvg: '{{ $captchaData['svg'] }}',
-          captchaInput: '' 
-      }">
+          captchaInput: '',
+          activeSlide: 0,
+          totalSlides: {{ isset($sliders) && count($sliders) > 0 ? count($sliders) : 1 }}
+      }"
+      x-init="if(totalSlides > 1) setInterval(() => { activeSlide = (activeSlide + 1) % totalSlides }, 6000)">
 
     <div class="min-h-screen w-full flex flex-col lg:flex-row">
         
-        <!-- LEFT PANEL: Artistic Splash & Probolinggo Branding (Matching Diskominfo Portal) -->
-        <div class="lg:w-1/2 bg-gradient-to-br from-rose-100 via-amber-50 via-teal-50 to-sky-100 relative flex flex-col justify-between p-8 lg:p-16 overflow-hidden border-r border-slate-100 min-h-[400px] lg:min-h-screen">
+        <!-- LEFT PANEL: Hero Banner Slider Background & Probolinggo Branding -->
+        <div class="lg:w-1/2 bg-slate-950 relative flex flex-col justify-between p-8 lg:p-16 overflow-hidden border-r border-slate-800 min-h-[400px] lg:min-h-screen">
             
-            <!-- Abstract Watercolor Splashes -->
-            <div class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-rose-400/30 blur-3xl pointer-events-none"></div>
-            <div class="absolute top-1/3 -left-10 w-96 h-96 rounded-full bg-amber-400/25 blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-blue-500/25 blur-3xl pointer-events-none"></div>
-            <div class="absolute top-10 right-10 w-72 h-72 rounded-full bg-teal-400/20 blur-3xl pointer-events-none"></div>
+            <!-- Dynamic Banner Slider Background Images -->
+            @if(isset($sliders) && count($sliders) > 0)
+                @foreach($sliders as $idx => $slide)
+                    <div x-show="activeSlide === {{ $idx }}"
+                         x-transition:enter="transition opacity duration-1000 ease-out"
+                         x-transition:enter-start="opacity-0 scale-105"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition opacity duration-700 ease-in"
+                         class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
+                         style="background-image: url('{{ $slide->image_url }}');">
+                    </div>
+                @endforeach
+            @else
+                <div class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
+                     style="background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop');">
+                </div>
+            @endif
+
+            <!-- Ultra Light Overlay for 100% Clear & Crisp Photo Visibility -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/20 to-black/30"></div>
 
             <!-- Top Logos & Title -->
-            <div class="relative z-10 space-y-8 max-w-lg mx-auto lg:mx-0 pt-4">
+            <div class="relative z-10 space-y-6 max-w-lg mx-auto lg:mx-0 pt-4 text-white">
                 <div class="flex items-center gap-4">
                     <img src="{{ $settings['logo_frontend'] ?? 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lambang_Kabupaten_Probolinggo.jpg/440px-Lambang_Kabupaten_Probolinggo.jpg' }}" 
                          alt="Logo Probolinggo" 
-                         class="h-20 w-auto object-contain drop-shadow-md">
+                         class="h-20 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
                     <div>
-                        <span class="font-extrabold text-2xl tracking-wide bg-gradient-to-r from-amber-600 via-rose-600 to-purple-600 bg-clip-text text-transparent block">endless</span>
-                        <span class="font-extrabold text-3xl tracking-tight text-cyan-600 block -mt-2">probo<span class="text-purple-600">linggo</span></span>
+                        <span class="font-extrabold text-2xl tracking-wide bg-gradient-to-r from-amber-400 via-rose-300 to-emerald-400 bg-clip-text text-transparent block drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">endless</span>
+                        <span class="font-extrabold text-3xl tracking-tight text-cyan-300 block -mt-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">probo<span class="text-amber-300">linggo</span></span>
                     </div>
                 </div>
 
-                <div class="pt-6">
-                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-800 leading-snug tracking-tight">
+                <div class="pt-4 space-y-2">
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-snug tracking-tight drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]">
                         Dinas Koperasi, Usaha Mikro, Perdagangan dan Perindustrian
                     </h2>
-                    <p class="text-base font-bold text-slate-600 mt-1">Kabupaten Probolinggo</p>
+                    <p class="text-base font-bold text-emerald-400 tracking-wide drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">Kabupaten Probolinggo</p>
                 </div>
+
+                <!-- Minimalist Banner Slider Nav Dots -->
+                @if(isset($sliders) && count($sliders) > 1)
+                    <div class="pt-3 flex items-center gap-2">
+                        @foreach($sliders as $idx => $slide)
+                            <button type="button" @click="activeSlide = {{ $idx }}" 
+                                    class="h-2 rounded-full transition-all duration-300 shadow-md"
+                                    :class="activeSlide === {{ $idx }} ? 'w-8 bg-emerald-400' : 'w-2 bg-white/40 hover:bg-white'"></button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <!-- Bottom City Skyline Illustration Vector -->
             <div class="relative z-10 pt-12 mt-auto">
-                <svg class="w-full h-32 text-cyan-600/40 opacity-70" viewBox="0 0 1200 120" preserveAspectRatio="none" fill="currentColor">
+                <svg class="w-full h-28 text-emerald-400/40 opacity-80" viewBox="0 0 1200 120" preserveAspectRatio="none" fill="currentColor">
                     <path d="M0,120 L0,80 L30,80 L30,40 L60,40 L60,80 L90,80 L90,20 L130,20 L130,80 L160,80 L160,50 L200,50 L200,80 L230,80 L230,10 L280,10 L280,80 L320,80 L320,60 L360,60 L360,80 L400,80 L400,30 L450,30 L450,80 L500,80 L500,0 L560,0 L560,80 L610,80 L610,40 L660,40 L660,80 L710,80 L710,15 L770,15 L770,80 L820,80 L820,45 L880,45 L880,80 L930,80 L930,25 L990,25 L990,80 L1050,80 L1050,55 L1110,55 L1110,80 L1200,80 L1200,120 Z"></path>
                 </svg>
             </div>
@@ -94,17 +124,17 @@
                 <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
                     <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center">Petunjuk / Isi Otomatis Akun Demo:</p>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" @click="email = 'admin@dkupp.probolinggokab.go.id';" 
+                        <button type="button" @click="email = 'admin@dkupp.probolinggokab.go.id'; password = 'admin123';" 
                                 :class="email === 'admin@dkupp.probolinggokab.go.id' ? 'bg-emerald-700 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
                                 class="py-2 px-3 rounded-xl text-xs flex flex-col items-center border border-slate-200 transition-all">
                             <span>Super Admin</span>
-                            <span class="text-[9px] opacity-80">(Klik jika ingin auto-isi)</span>
+                            <span class="text-[9px] opacity-80">(Auto-isi akun)</span>
                         </button>
-                        <button type="button" @click="email = 'staf@dkupp.probolinggokab.go.id';" 
+                        <button type="button" @click="email = 'staf@dkupp.probolinggokab.go.id'; password = 'admin123';" 
                                 :class="email === 'staf@dkupp.probolinggokab.go.id' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
                                 class="py-2 px-3 rounded-xl text-xs flex flex-col items-center border border-slate-200 transition-all">
                             <span>Staf Pelayanan</span>
-                            <span class="text-[9px] opacity-80">(Klik jika ingin auto-isi)</span>
+                            <span class="text-[9px] opacity-80">(Auto-isi akun)</span>
                         </button>
                     </div>
                 </div>
@@ -123,7 +153,7 @@
                     <div>
                         <label class="block font-medium text-slate-600 mb-1.5 text-xs">Password <span class="text-rose-500">*</span></label>
                         <div class="relative">
-                            <input :type="showPassword ? 'text' : 'password'" name="password" required value="" placeholder="Masukkan Password" autocomplete="new-password"
+                            <input :type="showPassword ? 'text' : 'password'" name="password" required x-model="password" placeholder="Masukkan Password" autocomplete="new-password"
                                    class="w-full px-4 py-3 bg-[#f0f4f8] border-0 rounded-lg focus:bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none font-medium text-slate-800 text-sm pr-10">
                             <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
                                 <i class="far" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>

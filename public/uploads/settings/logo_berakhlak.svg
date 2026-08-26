@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 75" width="290" height="75">
+  <defs>
+    <linearGradient id="redTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cc092f"/>
+      <stop offset="100%" stop-color="#9a0026"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(5, 5)">
+    <!-- Word: BerAKHLAK -->
+    <text x="0" y="42" font-family="'Plus Jakarta Sans', 'Segoe UI', 'Arial Black', sans-serif" font-weight="900" font-size="36" fill="url(#redTextGrad)" letter-spacing="-0.8">BerAKHLAK</text>
+    
+    <!-- Top-Right Chevron Arrow symbol above K -->
+    <g transform="translate(208, 6) scale(0.9)">
+      <!-- Outer Arrow Chevron -->
+      <path d="M0 16 L10 2 L20 2 L12 16 L20 30 L10 30 Z" fill="#9a0026" />
+      <path d="M10 16 L20 2 L28 2 L20 16 L28 30 L20 30 Z" fill="#cc092f" />
+    </g>
+
+    <!-- Subtitle: Berorientasi Pelayanan Akuntabel... -->
+    <text x="2" y="56" font-family="'Segoe UI', Arial, sans-serif" font-weight="700" font-size="7.5" fill="#cc092f" letter-spacing="-0.2">Berorientasi Pelayanan Akuntabel Kompeten</text>
+    <text x="2" y="66" font-family="'Segoe UI', Arial, sans-serif" font-weight="700" font-size="7.5" fill="#cc092f" letter-spacing="-0.2">Harmonis Loyal Adaptif Kolaboratif</text>
+  </g>
+</svg>

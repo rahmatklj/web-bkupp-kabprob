@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lapor SP4N! | DKUPP Kabupaten Probolinggo</title>
-    <meta name="description" content="Layanan Pengaduan Masyarakat SP4N LAPOR! DKUPP Kabupaten Probolinggo">
+    <title>SP4N LAPOR! | DKUPP Kabupaten Probolinggo</title>
+    <meta name="description" content="Layanan Pengaduan Pelayanan Publik Nasional SP4N LAPOR! DKUPP Kabupaten Probolinggo">
     <link rel="icon" type="image/png" href="{{ $settings['logo_frontend'] ?? '' }}">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,10 +49,10 @@
                     </div>
                     <div>
                         <span class="inline-block px-3 py-0.5 bg-rose-100 text-rose-800 rounded-full text-[10px] font-extrabold uppercase tracking-wide mb-1">
-                            Layanan Aspirasi & Pengaduan Online Rakyat
+                            Layanan Aspirasi & Pengaduan Online Rakyat (SP4N LAPOR!)
                         </span>
-                        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">Portal SP4N LAPOR! RI</h1>
-                        <p class="text-xs text-slate-500 mt-1">Layanan pengaduan resmi terintegrasi langsung dengan Pemerintah Kabupaten Probolinggo & Kementerian PANRB.</p>
+                        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">Portal SP4N LAPOR!</h1>
+                        <p class="text-xs text-slate-500 mt-1">Layanan pengaduan resmi terintegrasi nasional dengan Pemerintah Kabupaten Probolinggo & DKUPP.</p>
                     </div>
                 </div>
 

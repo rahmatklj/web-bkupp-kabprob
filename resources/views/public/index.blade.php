@@ -58,7 +58,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-700 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-600 selection:text-white"
+<body class="bg-slate-50 text-slate-700 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-600 selection:text-white overflow-x-hidden w-full max-w-full"
       x-data="{ 
           mobileMenu: false, 
           highContrast: false, 
@@ -74,23 +74,6 @@
       x-init="if(totalSlides > 1) setInterval(() => nextSlide(), 7000)">
 
     @include('partials.public_header')
-
-    <!-- Info Ticker Minimalist -->
-    <div class="bg-emerald-50 border-b border-emerald-100 text-xs py-2.5 px-4">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div class="flex items-center gap-2 font-semibold text-emerald-800">
-                <i class="fas fa-bullhorn text-emerald-600"></i>
-                <span class="uppercase tracking-wider text-[11px]">Info Terkini:</span>
-            </div>
-            <div class="flex flex-wrap justify-center gap-3 text-[11px] text-slate-600 font-medium">
-                <span class="flex items-center gap-1"><i class="fas fa-shopping-bag text-emerald-500"></i> Portal SIMADU SAE Aktif</span>
-                <span class="hidden sm:inline text-slate-300">|</span>
-                <span class="flex items-center gap-1"><i class="fas fa-balance-scale text-emerald-500"></i> Uji Tera Metrologi Legal</span>
-                <span class="hidden sm:inline text-slate-300">|</span>
-                <span class="flex items-center gap-1"><i class="fas fa-star text-amber-500"></i> SKM DKUPP 2025: 88.75 (Sangat Baik)</span>
-            </div>
-        </div>
-    </div>
 
     <!-- Main Content -->
     <main class="flex-grow">
@@ -142,36 +125,6 @@
                     <button @click="activeSlide = {{ $index }}" class="h-2 rounded-full transition-all duration-300 shadow-md"
                             :class="activeSlide === {{ $index }} ? 'w-8 bg-emerald-500' : 'w-2 bg-white/60 hover:bg-white'"></button>
                 @endforeach
-            </div>
-        </section>
-
-        <!-- Quick Access (Minimalis & Responsif: 3 Kolom Menyamping di Mobile & Desktop) -->
-        <section class="relative -mt-6 sm:-mt-10 z-30 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                <!-- Card 1: Harga Pangan -->
-                <a href="{{ route('harga.pasar') }}" class="group bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-xs hover:shadow-md border border-slate-200/80 hover:border-emerald-400 transition-all duration-200 flex flex-col items-center text-center hover:-translate-y-0.5">
-                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center text-sm sm:text-xl transition-colors mb-1.5 sm:mb-2.5 shrink-0">
-                        <i class="fas fa-shopping-basket"></i>
-                    </div>
-                    <h3 class="font-extrabold text-[11px] sm:text-sm text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors truncate w-full">Harga Pangan</h3>
-                    <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5 font-medium leading-snug line-clamp-1 hidden sm:block">Update Sembako Hari Ini</p>
-                </a>
-                <!-- Card 2: Metrologi -->
-                <a href="{{ route('layanan') }}" class="group bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-xs hover:shadow-md border border-slate-200/80 hover:border-emerald-400 transition-all duration-200 flex flex-col items-center text-center hover:-translate-y-0.5">
-                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center text-sm sm:text-xl transition-colors mb-1.5 sm:mb-2.5 shrink-0">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <h3 class="font-extrabold text-[11px] sm:text-sm text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors truncate w-full">Metrologi Legal</h3>
-                    <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5 font-medium leading-snug line-clamp-1 hidden sm:block">Uji Tera Timbangan</p>
-                </a>
-                <!-- Card 3: Lapor SP4N! -->
-                <a href="{{ route('lapor') }}" class="group bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-xs hover:shadow-md border border-slate-200/80 hover:border-emerald-400 transition-all duration-200 flex flex-col items-center text-center hover:-translate-y-0.5">
-                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center text-sm sm:text-xl transition-colors mb-1.5 sm:mb-2.5 shrink-0">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h3 class="font-extrabold text-[11px] sm:text-sm text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors truncate w-full">Lapor SP4N!</h3>
-                    <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5 font-medium leading-snug line-clamp-1 hidden sm:block">Pengaduan Masyarakat</p>
-                </a>
             </div>
         </section>
 
@@ -231,6 +184,24 @@
             $laporUrl = \App\Models\SiteSetting::get('lapor_sp4n_url', 'https://www.lapor.go.id/');
             $laporLogo = \App\Models\SiteSetting::get('lapor_sp4n_logo', $defaultLogo);
             $isExternalLapor = filter_var($laporUrl, FILTER_VALIDATE_URL);
+
+            $waRawNum = $settings['whatsapp_number'] ?? '081234567890';
+            $waUrl = $settings['hallosae_whatsapp_url'] ?? ($settings['whatsapp_url'] ?? '');
+            $waTitle = $settings['whatsapp_title'] ?? 'Pengaduan hallosae';
+            $waDesc = $settings['whatsapp_desc'] ?? 'Pengaduan & konsultasi cepat terhubung langsung ke WhatsApp Lapor Hallo SAE.';
+            $waMsg = $settings['whatsapp_default_message'] ?? 'Halo Lapor Hallo SAE Kabupaten Probolinggo, saya ingin menyampaikan pengaduan.';
+            $waLogo = $settings['whatsapp_logo'] ?? 'fab fa-whatsapp';
+            
+            if (empty($waUrl)) {
+                $waClean = preg_replace('/[^0-9]/', '', $waRawNum);
+                if (str_starts_with($waClean, '0')) {
+                    $waClean = '62' . substr($waClean, 1);
+                }
+                $waUrl = 'https://wa.me/' . $waClean;
+            }
+            if (!str_contains($waUrl, 'text=')) {
+                $waUrl .= (str_contains($waUrl, '?') ? '&' : '?') . 'text=' . urlencode($waMsg);
+            }
         @endphp
         <section class="py-12 bg-slate-50 border-y border-slate-100">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -240,11 +211,11 @@
                         <i class="fas fa-cubes me-1"></i> Layanan & Portal Utama
                     </span>
                     <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Akses Cepat Portal Resmi DKUPP</h2>
-                    <p class="text-xs text-slate-500">Integrasi pemantauan harga sembako, katalog produk UMKM SIMADU SAE, keterbukaan informasi PPID, dan SP4N LAPOR!.</p>
+                    <p class="text-xs text-slate-500">Integrasi pemantauan harga sembako, katalog produk UMKM SIMADU SAE, keterbukaan informasi PPID, dan Lapor Hallo SAE.</p>
                 </div>
 
-                <!-- 4 Portal Cards (Minimalis & 100% Responsif: 2 Kolom Mobile, 4 Kolom Desktop) -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                <!-- 5 Portal Cards (Minimalis & 100% Responsif: 2-3 Kolom Mobile, 5 Kolom Desktop) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     <!-- Portal 1: Siskaperbapo Harga Pasar -->
                     <a href="{{ $singleMarketUrl }}" {{ $isExternalMarket ? 'target="_blank" rel="noopener noreferrer"' : '' }}
                        class="group bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-amber-400 transition-all duration-300 flex flex-col justify-between space-y-3 hover:-translate-y-1">
@@ -252,13 +223,13 @@
                             <div class="flex items-center justify-between gap-1.5">
                                 <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-amber-50/80 border border-amber-200/60 shadow-2xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1 shrink-0">
                                     @if(filter_var($marketLogo, FILTER_VALIDATE_URL) || str_starts_with($marketLogo, '/') || str_contains($marketLogo, '.'))
-                                        <img src="{{ $marketLogo }}" alt="Siskaperbapo" class="w-full h-full object-contain">
+                                        <img src="{{ $marketLogo }}" alt="Simaduhttps://simadu.probolinggokab.go.id/assets/logo-ZIdY9hoJ.png" class="w-full h-full object-contain">
                                     @else
                                         <i class="{{ $marketLogo }} text-amber-600 text-sm sm:text-base"></i>
                                     @endif
                                 </div>
                                 <span class="text-[9px] sm:text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-amber-200/80 shrink-0">
-                                    Siskaperbapo
+                                    SIMADU SAE
                                 </span>
                             </div>
                             <div>
@@ -344,10 +315,11 @@
                         <div class="space-y-2.5">
                             <div class="flex items-center justify-between gap-1.5">
                                 <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-rose-50/80 border border-rose-200/60 shadow-2xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1 shrink-0">
-                                    @if(filter_var($laporLogo, FILTER_VALIDATE_URL) || str_starts_with($laporLogo, '/') || str_contains($laporLogo, '.'))
-                                        <img src="{{ $laporLogo }}" alt="SP4N LAPOR!" class="w-full h-full object-contain">
+                                    @if(!empty($laporLogo) && (str_starts_with($laporLogo, 'data:') || filter_var($laporLogo, FILTER_VALIDATE_URL) || str_starts_with($laporLogo, '/') || str_starts_with($laporLogo, 'http') || str_contains($laporLogo, '.')))
+                                        <img src="{{ $laporLogo }}" alt="SP4N LAPOR!" class="w-full h-full object-contain" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+                                        <i class="fas fa-bullhorn text-rose-600 text-sm sm:text-base hidden"></i>
                                     @else
-                                        <i class="{{ $laporLogo }} text-rose-600 text-sm sm:text-base"></i>
+                                        <i class="{{ (!empty($laporLogo) && !str_contains($laporLogo, 'data:')) ? $laporLogo : 'fas fa-bullhorn' }} text-rose-600 text-sm sm:text-base"></i>
                                     @endif
                                 </div>
                                 <span class="text-[9px] sm:text-[10px] font-extrabold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-rose-200/80 shrink-0">
@@ -356,16 +328,47 @@
                             </div>
                             <div>
                                 <h3 class="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-rose-700 transition-colors leading-snug line-clamp-1 sm:line-clamp-2">
-                                    Pengaduan SP4N LAPOR!
+                                    SP4N LAPOR!
                                 </h3>
                                 <p class="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2 hidden sm:block">
-                                    Layanan aspirasi & pengaduan online rakyat terintegrasi SP4N LAPOR! RI.
+                                    Layanan pengaduan & aspirasi resmi masyarakat secara nasional.
                                 </p>
                             </div>
                         </div>
                         <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] sm:text-xs font-bold text-rose-700">
                             <span>Buat Laporan</span>
                             <i class="fas fa-arrow-right text-[10px] sm:text-xs group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+
+                    <!-- Portal 5: Pengaduan WhatsApp -->
+                    <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer"
+                       class="group bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-emerald-500 transition-all duration-300 flex flex-col justify-between space-y-3 hover:-translate-y-1">
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between gap-1.5">
+                                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-50/80 border border-emerald-200/60 shadow-2xs flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 overflow-hidden p-1">
+                                    @if(!empty($waLogo) && (str_starts_with($waLogo, 'data:') || filter_var($waLogo, FILTER_VALIDATE_URL) || str_starts_with($waLogo, '/') || str_contains($waLogo, '.')))
+                                        <img src="{{ $waLogo }}" alt="WhatsApp Logo" class="w-full h-full object-contain">
+                                    @else
+                                        <i class="{{ $waLogo ?: 'fab fa-whatsapp' }} text-emerald-600 text-lg sm:text-2xl"></i>
+                                    @endif
+                                </div>
+                                <span class="text-[9px] sm:text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md uppercase tracking-wider border border-emerald-300/80 shrink-0">
+                                    HaloSAE
+                                </span>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors leading-snug line-clamp-1 sm:line-clamp-2">
+                                    {{ $waTitle }}
+                                </h3>
+                                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2 hidden sm:block">
+                                    {{ $waDesc }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] sm:text-xs font-bold text-emerald-700">
+                            <span>Chat WhatsApp</span>
+                            <i class="fab fa-whatsapp text-[12px] group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </a>
                 </div>
@@ -413,26 +416,26 @@
                         </div>
                     </div>
 
-                    <!-- Right Sidebar (Minimalist Cards 2 Kolom di Mobile) -->
-                    <aside class="lg:col-span-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-5 items-stretch">
+                    <!-- Right Sidebar -->
+                    <aside class="lg:col-span-4 w-full flex flex-col justify-start">
                         
-                        <!-- Maklumat Pelayanan (Minimalist Card & Modal) -->
-                        <div x-data="{ showMaklumatModal: false }" class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-3 sm:p-5 shadow-2xs text-center space-y-2.5 hover:shadow-md transition-all flex flex-col justify-between">
-                            <div class="space-y-1.5">
-                                <div class="w-9 h-9 sm:w-12 sm:h-12 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center justify-center mx-auto text-base sm:text-xl shadow-2xs">
+                        <!-- Maklumat Pelayanan (Full Width Horizontal Card on Mobile) -->
+                        <div x-data="{ showMaklumatModal: false }" class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between items-center text-center w-full space-y-3.5 sm:space-y-4">
+                            <div class="flex flex-col items-center text-center space-y-2 w-full">
+                                <div class="w-11 h-11 sm:w-13 sm:h-13 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-2xs shrink-0">
                                     <i class="fas fa-file-signature"></i>
                                 </div>
-                                <div class="space-y-0.5">
-                                    <h3 class="font-extrabold text-slate-900 text-xs sm:text-base">Maklumat Pelayanan</h3>
-                                    <p class="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto hidden sm:block">
-                                        Pelayanan publik sesuai standar secara profesional, transparan, dan bebas KKN.
+                                <div class="space-y-1">
+                                    <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">Maklumat Pelayanan</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                                        Komitmen pelayanan publik sesuai standar secara profesional, transparan, dan bebas KKN.
                                     </p>
                                 </div>
                             </div>
                             <button @click="showMaklumatModal = true" 
-                                    class="inline-flex items-center justify-center gap-1 w-full py-1.5 px-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-lg sm:rounded-full font-bold text-[10px] sm:text-xs transition-all shadow-2xs group">
-                                <span>Baca Maklumat</span>
-                                <i class="fas fa-arrow-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
+                                    class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 group">
+                                <span>Baca Maklumat Resmi</span>
+                                <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
                             </button>
 
                             <!-- Interactive Modal Popup Maklumat Pelayanan -->
@@ -474,16 +477,6 @@
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- IKM Widget -->
-                        <div class="bg-slate-900 text-white rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-2xs text-center relative overflow-hidden flex flex-col justify-center items-center">
-                            <div class="absolute -right-3 -top-3 text-slate-800 opacity-40 text-4xl sm:text-6xl"><i class="fas fa-award"></i></div>
-                            <div class="relative z-10 space-y-1">
-                                <h3 class="text-[9px] sm:text-xs font-bold text-emerald-400 uppercase tracking-widest">Indeks Kepuasan</h3>
-                                <div class="text-2xl sm:text-4xl font-extrabold text-white leading-none">{{ $settings['skm_score'] ?? '88.75' }}</div>
-                                <span class="inline-block bg-white/20 text-white text-[9px] sm:text-[11px] px-2 py-0.5 rounded font-bold">Sangat Baik (A)</span>
                             </div>
                         </div>
 
@@ -550,35 +543,36 @@
                     </a>
                 </div>
 
-                <!-- Side-by-Side Layout: 2 Foto di Kiri & 2 Video di Kanan (2 Kolom di Mobile) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <!-- Side-by-Side Layout: Foto Kegiatan di Kiri & Video Kegiatan di Kanan (Sejajar 2 Kolom di HP / Mobile) -->
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-6 items-start">
                     
-                    <!-- SISI KIRI: 2 FOTO KEGIATAN -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                            <h3 class="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
-                                <i class="fas fa-camera text-emerald-600"></i> Foto Kegiatan
+                    <!-- SISI KIRI: FOTO KEGIATAN -->
+                    <div class="space-y-2 sm:space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                            <h3 class="font-extrabold text-slate-900 text-[11px] sm:text-sm flex items-center gap-1.5 truncate">
+                                <i class="fas fa-camera text-emerald-600 text-xs sm:text-sm shrink-0"></i> 
+                                <span class="truncate">Foto Kegiatan</span>
                             </h3>
-                            <a href="{{ route('galeri') }}" class="text-[11px] sm:text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
-                                Lihat Semua <i class="fas fa-arrow-right text-[9px]"></i>
+                            <a href="{{ route('galeri') }}" class="text-[9px] sm:text-xs font-bold text-emerald-700 hover:underline flex items-center gap-0.5 shrink-0">
+                                <span>Lihat Semua</span> <i class="fas fa-arrow-right text-[8px]"></i>
                             </a>
                         </div>
 
                         @if(isset($photoGalleries) && $photoGalleries->count() > 0)
-                            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                                 @foreach(collect($photoGalleries)->take(2) as $img)
                                     <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 group flex flex-col justify-between cursor-pointer hover:-translate-y-0.5"
                                          @click="activePhoto = {{ json_encode(['title' => $img->title, 'caption' => $img->caption, 'file_path' => $img->file_path]) }}">
                                         <div class="aspect-[4/3] bg-slate-100 overflow-hidden relative">
                                             <img src="{{ $img->file_path }}" alt="{{ $img->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                            <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-2">
-                                                <span class="px-2.5 py-1 bg-emerald-600/90 rounded-lg text-[10px] font-extrabold shadow-sm flex items-center gap-1 transform translate-y-1 group-hover:translate-y-0 transition-transform">
+                                            <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-1.5">
+                                                <span class="px-2 py-0.5 bg-emerald-600/90 rounded-md text-[9px] font-extrabold shadow-sm flex items-center gap-1">
                                                     <i class="fas fa-search-plus"></i> Perbesar
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="p-2.5 sm:p-3.5 space-y-0.5">
-                                            <h4 class="font-extrabold text-slate-900 text-xs line-clamp-1 sm:line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">{{ $img->title }}</h4>
+                                        <div class="p-2 sm:p-3.5 space-y-0.5">
+                                            <h4 class="font-extrabold text-slate-900 text-[11px] sm:text-xs line-clamp-1 sm:line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">{{ $img->title }}</h4>
                                             @if($img->caption)
                                                 <p class="text-[10px] sm:text-[11px] text-slate-500 line-clamp-1 leading-relaxed hidden sm:block">{{ $img->caption }}</p>
                                             @endif
@@ -587,26 +581,27 @@
                                 @endforeach
                             </div>
                         @else
-                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-center text-slate-400 text-xs">
-                                <i class="fas fa-images text-emerald-500 text-2xl mb-1 block"></i>
+                            <div class="p-4 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-center text-slate-400 text-[10px] sm:text-xs">
+                                <i class="fas fa-images text-emerald-500 text-xl sm:text-2xl mb-1 block"></i>
                                 Belum ada foto kegiatan.
                             </div>
                         @endif
                     </div>
 
-                    <!-- SISI KANAN: 2 VIDEO KEGIATAN (YOUTUBE / FILE) -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                            <h3 class="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
-                                <i class="fab fa-youtube text-red-600"></i> Video Kegiatan
+                    <!-- SISI KANAN: VIDEO KEGIATAN (YOUTUBE / FILE) -->
+                    <div class="space-y-2 sm:space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                            <h3 class="font-extrabold text-slate-900 text-[11px] sm:text-sm flex items-center gap-1.5 truncate">
+                                <i class="fab fa-youtube text-red-600 text-xs sm:text-sm shrink-0"></i> 
+                                <span class="truncate">Video Kegiatan</span>
                             </h3>
-                            <a href="{{ route('galeri') }}" class="text-[11px] sm:text-xs font-bold text-red-600 hover:underline flex items-center gap-1">
-                                Lihat Semua <i class="fas fa-arrow-right text-[9px]"></i>
+                            <a href="{{ route('galeri') }}" class="text-[9px] sm:text-xs font-bold text-red-600 hover:underline flex items-center gap-0.5 shrink-0">
+                                <span>Lihat Semua</span> <i class="fas fa-arrow-right text-[8px]"></i>
                             </a>
                         </div>
 
                         @if(isset($videos) && $videos->count() > 0)
-                            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                                 @foreach(collect($videos)->take(2) as $vid)
                                     @php
                                         $ytId = '';
@@ -626,13 +621,13 @@
                                                 <video src="{{ $vid->file_path }}" class="w-full h-full object-cover"></video>
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-slate-600 bg-slate-900">
-                                                    <i class="fas fa-video text-2xl"></i>
+                                                    <i class="fas fa-video text-xl sm:text-2xl"></i>
                                                 </div>
                                             @endif
 
                                             <!-- Play Overlay Button -->
                                             <div class="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-all flex items-center justify-center">
-                                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-600 group-hover:bg-red-700 text-white flex items-center justify-center text-sm shadow-md transition-all transform group-hover:scale-110">
+                                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 group-hover:bg-red-700 text-white flex items-center justify-center text-xs sm:text-sm shadow-md transition-all transform group-hover:scale-110">
                                                     <i class="fas fa-play ms-0.5"></i>
                                                 </div>
                                             </div>
@@ -641,8 +636,8 @@
                                                 <i class="fab fa-youtube text-red-500"></i> Video
                                             </span>
                                         </div>
-                                        <div class="p-2.5 sm:p-3.5 space-y-0.5">
-                                            <h4 class="font-extrabold text-slate-900 text-xs line-clamp-1 sm:line-clamp-2 leading-snug group-hover:text-red-600 transition-colors">
+                                        <div class="p-2 sm:p-3.5 space-y-0.5">
+                                            <h4 class="font-extrabold text-slate-900 text-[11px] sm:text-xs line-clamp-1 sm:line-clamp-2 leading-snug group-hover:text-red-600 transition-colors">
                                                 {{ $vid->title }}
                                             </h4>
                                             @if($vid->caption)
@@ -653,9 +648,9 @@
                                 @endforeach
                             </div>
                         @else
-                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-center text-slate-400 text-xs">
-                                <i class="fab fa-youtube text-red-500 text-2xl mb-1 block"></i>
-                                Belum ada video kegiatan.
+                            <div class="p-4 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-center text-slate-400 text-[10px] sm:text-xs">
+                                <i class="fab fa-youtube text-red-500 text-xl sm:text-2xl mb-1 block"></i>
+                                Belum ada video.
                             </div>
                         @endif
                     </div>

@@ -25,11 +25,16 @@ class AppServiceProvider extends ServiceProvider
             });
             $navMenus = \App\Models\NavigationMenu::whereNull('parent_id')
                 ->where('is_active', true)
-                ->orderBy('sort_order')
+                ->orderBy('order', 'asc')
                 ->with(['children' => function($q) {
-                    $q->where('is_active', true)->orderBy('sort_order');
+                    $q->where('is_active', true)->orderBy('order', 'asc');
                 }])->get();
-            $view->with('settings', $settings)->with('navMenus', $navMenus);
+
+            $runningNews = \Illuminate\Support\Facades\Cache::remember('running_news_top', 300, function () {
+                return \App\Models\NewsItem::orderBy('published_at', 'desc')->take(6)->get();
+            });
+
+            $view->with('settings', $settings)->with('navMenus', $navMenus)->with('runningNews', $runningNews);
         });
     }
 }

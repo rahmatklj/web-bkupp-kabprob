@@ -102,7 +102,7 @@
                             </button>
 
                             <!-- Unduh PDF Button -->
-                            <a href="{{ $downloadRoute }}" class="flex-1 sm:flex-none px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold rounded-xl shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95">
+                            <a href="{{ $downloadRoute }}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold rounded-xl shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95">
                                 <i class="fas fa-download text-sm"></i> <span>Unduh</span>
                             </a>
                         </div>
@@ -148,7 +148,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <a :href="downloadUrl" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
+                    <a :href="downloadUrl" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
                         <i class="fas fa-download text-xs"></i> <span class="hidden sm:inline">Unduh PDF</span>
                     </a>
                     <a :href="pdfUrl" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">

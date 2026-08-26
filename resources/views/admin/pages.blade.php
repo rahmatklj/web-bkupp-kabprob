@@ -3,7 +3,25 @@
 @section('page_title', 'CRUD Halaman Profil & Layanan')
 
 @section('content')
-<div class="space-y-6" x-data="{ showModal: false, editMode: false, currentPage: {} }">
+<div class="space-y-6" x-data="{ 
+    showModal: false, 
+    editMode: false, 
+    currentPage: {},
+    imageErrorMsg: null,
+    validateImageFile(e) {
+        this.imageErrorMsg = null;
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg', 'jpeg', 'png'].includes(ext)) {
+                const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
+                this.imageErrorMsg = msg;
+                alert(msg);
+                e.target.value = '';
+            }
+        }
+    }
+}">
     
     <!-- Tab Navigation Bar -->
     <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
@@ -102,10 +120,18 @@
 
                 <div class="space-y-2 p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl">
                     <label class="block font-extrabold text-emerald-900 text-xs">
-                        <i class="fas fa-upload text-emerald-600 me-1"></i> Upload Foto, Gambar, atau Berkas Dokumen Halaman
+                        <i class="fas fa-upload text-emerald-600 me-1"></i> Upload Foto / Gambar Halaman
                     </label>
-                    <input type="file" name="image_file" accept="image/*,.pdf,.doc,.docx" 
+                    <input type="file" name="image_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" @change="validateImageFile($event)" 
                            class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-semibold text-slate-700 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer">
+                    
+                    <!-- PEMBERITAHUAN GAGAL UPLOAD NON-JPG/PNG -->
+                    <template x-if="imageErrorMsg">
+                        <div class="mt-2.5 p-3 bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                            <i class="fas fa-exclamation-triangle text-rose-600 text-base shrink-0"></i>
+                            <span x-text="imageErrorMsg"></span>
+                        </div>
+                    </template>
                     
                     <template x-if="currentPage.image">
                         <div class="mt-2 p-2 bg-white rounded-lg border border-emerald-200 flex items-center gap-3">

@@ -3,7 +3,22 @@
 @section('page_title', 'Kelola Link Website & Logo SIMADU SAE')
 
 @section('content')
-<div class="space-y-6 max-w-4xl mx-auto">
+<div class="space-y-6 max-w-4xl mx-auto" x-data="{
+    imageErrorMsg: null,
+    validateImageFile(e) {
+        this.imageErrorMsg = null;
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg', 'jpeg', 'png'].includes(ext)) {
+                const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
+                this.imageErrorMsg = msg;
+                alert(msg);
+                e.target.value = '';
+            }
+        }
+    }
+}">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div>
             <div class="flex items-center gap-2">
@@ -58,7 +73,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Upload File Logo (Dari HP / Komputer)</label>
-                        <input type="file" name="simadu_sae_logo_file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                        <input type="file" name="simadu_sae_logo_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" @change="validateImageFile($event)" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                        
+                        <!-- PEMBERITAHUAN GAGAL UPLOAD NON-JPG/PNG -->
+                        <template x-if="imageErrorMsg">
+                            <div class="mt-2.5 p-3 bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                                <i class="fas fa-exclamation-triangle text-rose-600 text-base shrink-0"></i>
+                                <span x-text="imageErrorMsg"></span>
+                            </div>
+                        </template>
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-500 me-1"></i> Atau Masukkan URL Gambar Logo SIMADU SAE</label>

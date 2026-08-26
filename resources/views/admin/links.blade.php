@@ -3,18 +3,66 @@
 @section('page_title', 'Kelola Tautan Terkait Logo Instansi')
 
 @section('content')
-<div class="space-y-6" x-data="{ showModal: false, editMode: false, currentLink: {} }">
+<div class="space-y-6" x-data="{ 
+    showModal: false, 
+    editMode: false, 
+    currentLink: {},
+    imageErrorMsg: null,
+    validateImageFile(e) {
+        this.imageErrorMsg = null;
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg', 'jpeg', 'png'].includes(ext)) {
+                const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
+                this.imageErrorMsg = msg;
+                alert(msg);
+                e.target.value = '';
+            }
+        }
+    }
+}">
     
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">Daftar Tautan Terkait Logo Instansi</h3>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+                <i class="fas fa-link text-orange-600"></i> Daftar Tautan Terkait Logo Instansi
+            </h3>
             <p class="text-xs text-slate-500 mt-0.5">Atur logo & link instansi mitra (Kemenkop UKM, Kemendag, Pemkab Probolinggo, Diskominfo)</p>
         </div>
-        <button @click="showModal = true; editMode = false; currentLink = { is_active: true, order: 0 }" 
+        <button @click="showModal = true; editMode = false; imageErrorMsg = null; currentLink = { is_active: true, order: 0 }" 
                 class="w-full sm:w-auto px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all">
             <i class="fas fa-plus"></i> Tambah Tautan Baru
         </button>
     </div>
+
+    @if(session('success'))
+        <div class="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-2 shadow-xs">
+            <i class="fas fa-check-circle text-base"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="p-4 bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold rounded-2xl flex items-center gap-2 shadow-xs">
+            <i class="fas fa-exclamation-triangle text-base"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-4 bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold rounded-2xl space-y-1 shadow-xs">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-exclamation-circle text-base"></i>
+                <span>Peringatan Gagal Upload Tautan Terkait:</span>
+            </div>
+            <ul class="list-disc pl-7 text-[11px] font-semibold">
+                @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <!-- Links Table -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto w-full">
@@ -46,7 +94,7 @@
                             </a>
                         </td>
                         <td class="px-3 sm:px-6 py-3.5 text-right whitespace-nowrap space-x-1">
-                            <button @click="showModal = true; editMode = true; currentLink = {{ json_encode($link) }}" 
+                            <button @click="showModal = true; editMode = true; imageErrorMsg = null; currentLink = {{ json_encode($link) }}" 
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit"><i class="fas fa-edit"></i></button>
                             <form action="{{ route('admin.links.destroy', $link->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus tautan ini?')">
                                 @csrf
@@ -61,38 +109,73 @@
     </div>
 
     <!-- Modal Form (Add / Edit Link) -->
-    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 my-8">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 class="font-bold text-slate-800 text-sm" x-text="editMode ? 'Edit Tautan Terkait' : 'Tambah Tautan Terkait Baru'"></h3>
                 <button @click="showModal = false" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
 
-            <form :action="editMode ? '/admin/links/' + currentLink.id : '{{ route('admin.links.store') }}'" method="POST" class="space-y-4 text-xs">
+            <form :action="editMode ? '/admin/links/' + currentLink.id : '{{ route('admin.links.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
                 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nama Instansi / Mitra</label>
-                    <input type="text" name="title" required x-model="currentLink.title" placeholder="Contoh: BMKG Indonesia" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <label class="block font-bold text-slate-700 mb-1">Nama Instansi / Mitra <span class="text-rose-500">*</span></label>
+                    <input type="text" name="title" required x-model="currentLink.title" placeholder="Contoh: BMKG Indonesia" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-bold">
+                </div>
+
+                <!-- Logo Upload & URL Input -->
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-image text-orange-600 me-1"></i> Logo Instansi / Mitra
+                    </label>
+
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">
+                                <i class="fas fa-upload text-orange-600 me-1"></i> Unggah File Logo (Dari HP / Komputer)
+                            </label>
+                            <input type="file" name="image_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" @change="validateImageFile($event)" 
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer">
+                            
+                            <!-- PEMBERITAHUAN GAGAL UPLOAD NON-JPG/PNG -->
+                            <template x-if="imageErrorMsg">
+                                <div class="mt-2.5 p-3 bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                                    <i class="fas fa-exclamation-triangle text-rose-600 text-base shrink-0"></i>
+                                    <span x-text="imageErrorMsg"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">
+                                <i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Gambar Logo (Opsional)
+                            </label>
+                            <input type="text" name="image_url" x-model="currentLink.image_url" placeholder="https://... atau /uploads/links/..." 
+                                   class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-mono text-xs bg-white">
+                        </div>
+                    </div>
+
+                    <template x-if="currentLink.image_url">
+                        <div class="mt-2 p-2 bg-white rounded-xl border border-slate-200 inline-flex items-center gap-3">
+                            <span class="text-[10px] font-bold text-slate-500">Preview Logo:</span>
+                            <img :src="currentLink.image_url" alt="Preview" class="h-8 w-auto max-w-[100px] object-contain rounded-md border border-slate-200">
+                        </div>
+                    </template>
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Logo Gambar</label>
-                    <input type="text" name="image_url" required x-model="currentLink.image_url" placeholder="https://..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Target Website URL</label>
-                    <input type="text" name="url" required x-model="currentLink.url" placeholder="https://bmkg.go.id" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <label class="block font-bold text-slate-700 mb-1">Target Website URL <span class="text-rose-500">*</span></label>
+                    <input type="text" name="url" required x-model="currentLink.url" placeholder="https://bmkg.go.id" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-mono text-xs">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Urutan (Order)</label>
-                        <input type="number" name="order" x-model="currentLink.order" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                        <input type="number" name="order" x-model="currentLink.order" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-bold">
                     </div>
                     <div class="flex items-center pt-5">
                         <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">

@@ -9,7 +9,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen"
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen overflow-x-hidden w-full max-w-full"
       x-data="{ mobileMenu: false, highContrast: false, fontSize: 100 }"
       :class="{ 'high-contrast': highContrast }"
       :style="`font-size: ${fontSize}%`">

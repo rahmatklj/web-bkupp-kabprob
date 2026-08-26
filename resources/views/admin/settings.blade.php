@@ -3,12 +3,34 @@
 @section('page_title', 'Pengaturan Website & Identitas Instansi')
 
 @section('content')
-<div class="max-w-4xl space-y-6">
+<div class="max-w-4xl space-y-6" x-data="{
+    brandingErrorMsg: null,
+    validatePdfAndImageFile(e) {
+        this.brandingErrorMsg = null;
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg', 'jpeg', 'png', 'webp', 'svg', 'pdf'].includes(ext)) {
+                const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto (JPG, PNG, WEBP, SVG) atau dokumen PDF (.pdf).';
+                this.brandingErrorMsg = msg;
+                alert(msg);
+                e.target.value = '';
+            }
+        }
+    }
+}">
     
     <div>
-        <h3 class="text-lg font-bold text-slate-800">Identitas & Kontak Instansi</h3>
-        <p class="text-xs text-slate-500">Semua perubahan di sini akan secara otomatis memperbarui logo, nama dinas, email, telepon, dan footer publik</p>
+        <h3 class="text-lg font-extrabold text-slate-800">Identitas & Branding Instansi</h3>
+        <p class="text-xs text-slate-500">Semua perubahan di sini akan secara otomatis memperbarui judul SEO, nama resmi dinas, deskripsi website, logo branding, serta profil Kepala Dinas.</p>
     </div>
+
+    @if(session('success'))
+        <div class="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-2 shadow-xs">
+            <i class="fas fa-check-circle text-base"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
 
     <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6 text-xs">
         @csrf
@@ -42,108 +64,184 @@
         </div>
 
         <!-- Logos & Branding -->
-        <div class="space-y-4">
-            <h4 class="font-extrabold text-slate-800 text-xs tracking-wider uppercase pb-2 border-b border-slate-100 text-emerald-700">
-                2. Gambar Logo & Branding
+        <div class="space-y-5">
+            <h4 class="font-extrabold text-slate-800 text-xs tracking-wider uppercase pb-2 border-b border-slate-100 text-emerald-700 flex items-center gap-1.5">
+                <i class="fas fa-image"></i> 2. Gambar Logo & Branding (Bisa Upload PDF & Foto JPG/PNG/WEBP/SVG)
             </h4>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Logo Topbar Frontend</label>
-                    <input type="text" name="logo_frontend" value="{{ $settings['logo_frontend'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+
+            <!-- 1. Logo Topbar Frontend & Logo Footer Backend -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Logo Topbar Frontend -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-file-upload text-emerald-600 me-1"></i> Logo Topbar Frontend (PDF / Gambar)
+                    </label>
+                    
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Logo / PDF</label>
+                        <input type="file" name="logo_frontend_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
+                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Logo Topbar</label>
+                        <input type="text" name="logo_frontend" value="{{ $settings['logo_frontend'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
+                    </div>
+
+                    @if(!empty($settings['logo_frontend']))
+                        <div class="pt-1 flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
+                            @if(str_contains(strtolower($settings['logo_frontend']), '.pdf'))
+                                <a href="{{ $settings['logo_frontend'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </a>
+                            @else
+                                <img src="{{ $settings['logo_frontend'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
+                            @endif
+                        </div>
+                    @endif
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Logo Footer Backend</label>
-                    <input type="text" name="logo_backend" value="{{ $settings['logo_backend'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+
+                <!-- Logo Footer Backend -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-file-upload text-emerald-600 me-1"></i> Logo Footer Backend (PDF / Gambar)
+                    </label>
+                    
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Logo / PDF</label>
+                        <input type="file" name="logo_backend_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
+                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Logo Footer</label>
+                        <input type="text" name="logo_backend" value="{{ $settings['logo_backend'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
+                    </div>
+
+                    @if(!empty($settings['logo_backend']))
+                        <div class="pt-1 flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
+                            @if(str_contains(strtolower($settings['logo_backend']), '.pdf'))
+                                <a href="{{ $settings['logo_backend'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </a>
+                            @else
+                                <img src="{{ $settings['logo_backend'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Logo BerAKHLAK Top Right</label>
-                    <input type="text" name="logo_berakhlak" value="{{ $settings['logo_berakhlak'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <!-- 2. Logo BerAKHLAK & QR Code Survey -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Logo BerAKHLAK -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-file-upload text-emerald-600 me-1"></i> Logo BerAKHLAK Top Right (PDF / Gambar)
+                    </label>
+                    
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Logo BerAKHLAK / PDF</label>
+                        <input type="file" name="logo_berakhlak_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
+                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Logo BerAKHLAK</label>
+                        <input type="text" name="logo_berakhlak" value="{{ $settings['logo_berakhlak'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
+                    </div>
+
+                    @if(!empty($settings['logo_berakhlak']))
+                        <div class="pt-1 flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
+                            @if(str_contains(strtolower($settings['logo_berakhlak']), '.pdf'))
+                                <a href="{{ $settings['logo_berakhlak'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </a>
+                            @else
+                                <img src="{{ $settings['logo_berakhlak'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
+                            @endif
+                        </div>
+                    @endif
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Image QR Code Survey</label>
-                    <input type="text" name="qr_code_survey" value="{{ $settings['qr_code_survey'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+
+                <!-- QR Code Survey -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-qrcode text-emerald-600 me-1"></i> Image QR Code Survey (PDF / Gambar)
+                    </label>
+                    
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Gambar QR / PDF</label>
+                        <input type="file" name="qr_code_survey_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
+                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Gambar QR</label>
+                        <input type="text" name="qr_code_survey" value="{{ $settings['qr_code_survey'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
+                    </div>
+
+                    @if(!empty($settings['qr_code_survey']))
+                        <div class="pt-1 flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
+                            @if(str_contains(strtolower($settings['qr_code_survey']), '.pdf'))
+                                <a href="{{ $settings['qr_code_survey'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </a>
+                            @else
+                                <img src="{{ $settings['qr_code_survey'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- 3. Kepala DKUPP & Foto Kepala -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Kepala DKUPP</label>
-                    <input type="text" name="kadin_name" value="{{ $settings['kadin_name'] ?? '' }}" placeholder="contoh: Drs. H. Taufik Alami, M.Si" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <input type="text" name="kadin_name" value="{{ $settings['kadin_name'] ?? '' }}" placeholder="contoh: SUGENG WIYANTO,S.sos,M.M" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-900">
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">URL Foto Kepala DKUPP</label>
-                    <input type="text" name="kadin_photo" value="{{ $settings['kadin_photo'] ?? '' }}" placeholder="https://... atau /images/kadin.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-            </div>
-        </div>
 
-        <!-- Contact Info -->
-        <div class="space-y-4">
-            <h4 class="font-extrabold text-slate-800 text-xs tracking-wider uppercase pb-2 border-b border-slate-100 text-emerald-700">
-                3. Informasi Alamat & Kontak
-            </h4>
+                <!-- Foto Kepala DKUPP -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block font-extrabold text-slate-800 text-xs">
+                        <i class="fas fa-user-tie text-emerald-600 me-1"></i> Foto Kepala DKUPP (PDF / Gambar)
+                    </label>
+                    
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Foto Kepala / PDF</label>
+                        <input type="file" name="kadin_photo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
+                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
 
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">Alamat Kantor Lengkap</label>
-                <input type="text" name="address" value="{{ $settings['address'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-            </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Foto Kepala</label>
+                        <input type="text" name="kadin_photo" value="{{ $settings['kadin_photo'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
+                    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nomor Telepon Kantor</label>
-                    <input type="text" name="phone" value="{{ $settings['phone'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Email Resmi Kantor</label>
-                    <input type="email" name="email" value="{{ $settings['email'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-            </div>
-
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">Teks Copyright Footer</label>
-                <input type="text" name="copyright_text" value="{{ $settings['copyright_text'] ?? '' }}" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-            </div>
-        </div>
-
-        <!-- 4. Link Media Sosial Resmi -->
-        <div class="space-y-4">
-            <h4 class="font-extrabold text-slate-800 text-xs tracking-wider uppercase pb-2 border-b border-slate-100 text-emerald-700">
-                4. Link Media Sosial Resmi DKUPP
-            </h4>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1"><i class="fab fa-instagram text-pink-600 me-1"></i> URL Instagram</label>
-                    <input type="text" name="instagram_url" value="{{ $settings['instagram_url'] ?? '' }}" placeholder="https://www.instagram.com/dkuppkabprobolinggo/" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1"><i class="fab fa-facebook text-blue-600 me-1"></i> URL Facebook</label>
-                    <input type="text" name="facebook_url" value="{{ $settings['facebook_url'] ?? '' }}" placeholder="https://www.facebook.com/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1"><i class="fab fa-youtube text-red-600 me-1"></i> URL YouTube</label>
-                    <input type="text" name="youtube_url" value="{{ $settings['youtube_url'] ?? '' }}" placeholder="https://www.youtube.com/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1"><i class="fab fa-tiktok text-slate-900 me-1"></i> URL TikTok</label>
-                    <input type="text" name="tiktok_url" value="{{ $settings['tiktok_url'] ?? '' }}" placeholder="https://www.tiktok.com/@..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1"><i class="fab fa-whatsapp text-emerald-600 me-1"></i> Link WhatsApp CS</label>
-                    <input type="text" name="whatsapp_url" value="{{ $settings['whatsapp_url'] ?? '' }}" placeholder="https://wa.me/6281234567890" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    @if(!empty($settings['kadin_photo']))
+                        <div class="pt-1 flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
+                            @if(str_contains(strtolower($settings['kadin_photo']), '.pdf'))
+                                <a href="{{ $settings['kadin_photo'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </a>
+                            @else
+                                <img src="{{ $settings['kadin_photo'] }}" class="h-10 w-10 rounded-full object-cover border border-slate-300">
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
 
         <div class="pt-4 border-t border-slate-100 flex justify-end">
-            <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all">
-                <i class="fas fa-save me-1.5"></i> Simpan Semua Pengaturan
+            <button type="submit" class="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> Simpan Semua Pengaturan
             </button>
         </div>
 

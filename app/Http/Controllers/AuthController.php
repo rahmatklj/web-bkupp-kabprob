@@ -11,35 +11,30 @@ class AuthController extends Controller
 {
     private function generateCaptchaSvg($code)
     {
-        $colors = ['#8B4513', '#FF4500', '#00008B', '#800080', '#C71585', '#000000', '#B22222', '#2E8B57'];
-        $lines = [
-            '<line x1="5" y1="35" x2="195" y2="10" stroke="#ec4899" stroke-width="2.5" opacity="0.8"/>',
-            '<line x1="10" y1="12" x2="190" y2="38" stroke="#8b5cf6" stroke-width="2" opacity="0.75"/>',
-            '<line x1="25" y1="42" x2="175" y2="5" stroke="#3b82f6" stroke-width="1.5" opacity="0.7"/>'
-        ];
+        $colors = ['#0f172a', '#047857', '#1e40af', '#991b1b', '#065f46', '#3730a3'];
         
-        $stripes = '';
-        for ($i = 0; $i < 50; $i += 4) {
-            $stripes .= "<line x1='0' y1='{$i}' x2='200' y2='{$i}' stroke='#d1d5db' stroke-width='1.5'/>";
-        }
-
         $charSvgs = '';
         $chars = str_split($code);
         $count = max(count($chars), 1);
-        $xStep = 175 / $count;
+        $xStep = 160 / $count;
 
         foreach ($chars as $idx => $char) {
-            $x = 15 + ($idx * $xStep);
-            $y = rand(30, 36);
+            $x = 18 + ($idx * $xStep);
+            $y = 32;
             $color = $colors[$idx % count($colors)];
-            $rot = rand(-12, 12);
-            $fontSize = rand(26, 30);
-            $charSvgs .= "<text x='{$x}' y='{$y}' fill='{$color}' font-size='{$fontSize}' font-family='Georgia, serif, Times New Roman' font-weight='bold' transform='rotate({$rot}, {$x}, {$y})'>{$char}</text>";
+            $rot = rand(-4, 4);
+            $fontSize = 26;
+            $charSvgs .= "<text x='{$x}' y='{$y}' fill='{$color}' font-size='{$fontSize}' font-family='Arial, sans-serif' font-weight='900' transform='rotate({$rot}, {$x}, {$y})'>{$char}</text>";
         }
 
-        $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='46' viewBox='0 0 200 46' class='w-full h-full object-cover rounded-l-lg bg-[#e5e7eb]'>";
-        $svg .= $stripes;
-        $svg .= implode('', $lines);
+        $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='46' viewBox='0 0 200 46' class='w-full h-full object-cover rounded-l-lg bg-slate-100'>";
+        $svg .= "<rect width='200' height='46' fill='#f1f5f9'/>";
+        for ($i = 10; $i < 200; $i += 20) {
+            $svg .= "<line x1='{$i}' y1='0' x2='{$i}' y2='46' stroke='#e2e8f0' stroke-width='1'/>";
+        }
+        for ($j = 10; $j < 46; $j += 12) {
+            $svg .= "<line x1='0' y1='{$j}' x2='200' y2='{$j}' stroke='#e2e8f0' stroke-width='1'/>";
+        }
         $svg .= $charSvgs;
         $svg .= "</svg>";
 
@@ -48,7 +43,12 @@ class AuthController extends Controller
 
     private function generateCaptcha()
     {
-        $code = strtolower(Str::random(6));
+        // Use unambiguous characters (no 0/O, 1/I/L)
+        $pool = '23456789abcdefghjkmnpqrstuvwxyz';
+        $code = '';
+        for ($i = 0; $i < 6; $i++) {
+            $code .= $pool[rand(0, strlen($pool) - 1)];
+        }
         session(['captcha_code' => $code]);
         return [
             'code' => $code,
@@ -63,7 +63,8 @@ class AuthController extends Controller
         }
         $captchaData = $this->generateCaptcha();
         $settings = SiteSetting::pluck('value', 'key')->toArray();
-        return view('auth.login', compact('settings', 'captchaData'));
+        $sliders = \App\Models\HeroSlider::where('is_active', true)->orderBy('order', 'asc')->get();
+        return view('auth.login', compact('settings', 'captchaData', 'sliders'));
     }
 
     public function refreshCaptcha()
