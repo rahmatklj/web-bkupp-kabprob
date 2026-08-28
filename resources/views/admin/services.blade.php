@@ -3,6 +3,75 @@
 @section('page_title', 'CRUD Standar Pelayanan Publik & SOP')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+function initServiceTinyMCE(reqContent = '', procContent = '') {
+    if (typeof tinymce === 'undefined') return;
+    
+    ['req_editor', 'proc_editor'].forEach(id => {
+        if (tinymce.get(id)) {
+            tinymce.get(id).destroy();
+        }
+    });
+
+    tinymce.init({
+        selector: '#req_editor',
+        height: 280,
+        menubar: 'file edit view insert format table help',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+        toolbar_mode: 'wrap',
+        content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 1rem; }',
+        branding: false,
+        promotion: false,
+        setup: function (editor) {
+            editor.on('init', function () {
+                editor.setContent(reqContent || '');
+            });
+            editor.on('change keyup NodeChange', function () {
+                editor.save();
+            });
+        }
+    });
+
+    tinymce.init({
+        selector: '#proc_editor',
+        height: 280,
+        menubar: 'file edit view insert format table help',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+        toolbar_mode: 'wrap',
+        content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 1rem; }',
+        branding: false,
+        promotion: false,
+        setup: function (editor) {
+            editor.on('init', function () {
+                editor.setContent(procContent || '');
+            });
+            editor.on('change keyup NodeChange', function () {
+                editor.save();
+            });
+        }
+    });
+}
+
+function syncServiceTinyMCE() {
+    if (typeof tinymce !== 'undefined') {
+        if (tinymce.get('req_editor')) tinymce.get('req_editor').save();
+        if (tinymce.get('proc_editor')) tinymce.get('proc_editor').save();
+    }
+}
+</script>
+
 <div class="space-y-6" x-data="{ 
     showModal: false, 
     editMode: false, 
@@ -14,6 +83,22 @@
     newMasterInput: '',
     showAddMaster: false,
     pdfErrorMsg: null,
+    openAddModal() {
+        this.showModal = true;
+        this.editMode = false;
+        this.currentService = { category: 'USAHA MIKRO', icon: 'fa-shopping-basket', cost: 'Gratis (Rp 0)', service_time: '1 Hari Kerja', location: 'Loket MPP Kraksaan', requirements: '', procedure: '', is_active: 1 };
+        setTimeout(() => {
+            initServiceTinyMCE('', '');
+        }, 50);
+    },
+    openEditModal(srv) {
+        this.showModal = true;
+        this.editMode = true;
+        this.currentService = Object.assign({}, srv);
+        setTimeout(() => {
+            initServiceTinyMCE(srv.requirements || '', srv.procedure || '');
+        }, 50);
+    },
     validatePdfFile(e) {
         this.pdfErrorMsg = null;
         const file = e.target.files[0];
@@ -22,7 +107,7 @@
             if (ext !== 'pdf' && file.type !== 'application/pdf') {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima dokumen SOP berformat PDF (.pdf).';
                 this.pdfErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'PDF (.pdf)');
                 e.target.value = '';
             }
         }
@@ -46,6 +131,26 @@
                 this.currentService.category = data.category;
                 this.newMasterInput = '';
                 this.showAddMaster = false;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    async deleteQuickMaster(catName, typeName) {
+        if (!confirm(`Hapus master kategori '${catName}'?`)) return;
+        try {
+            const res = await fetch('{{ route('admin.categories.quick-destroy') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ name: catName, type: typeName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.categoriesList = this.categoriesList.filter(c => c !== catName);
+                if (this.currentService && this.currentService.category === catName) this.currentService.category = '';
             }
         } catch (e) {
             console.error(e);
@@ -100,7 +205,7 @@
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">Tambah, edit, dan atur rincian Persyaratan Dokumen, Prosedur SOP, Biaya, Waktu, & Lokasi Pelayanan</p>
         </div>
-        <button @click="showModal = true; editMode = false; currentService = { category: 'USAHA MIKRO', icon: 'fa-shopping-basket', cost: 'Gratis (Rp 0)', service_time: '1 Hari Kerja', location: 'Loket MPP Kraksaan' }" 
+        <button @click="openAddModal()" 
                 class="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all shrink-0">
             <i class="fas fa-plus"></i> Tambah Layanan Baru
         </button>
@@ -140,6 +245,7 @@
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
                 <tr>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Layanan & Kategori</th>
+                    <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Status</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Ringkasan Layanan</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Biaya, Waktu & Lokasi</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Persyaratan & SOP</th>
@@ -161,6 +267,16 @@
                                     <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">{{ $srv->title }}</h4>
                                 </div>
                             </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <form action="{{ route('admin.services.toggle', $srv->id) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit" title="Klik untuk ubah status publikasi (Aktif / Draft)" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold transition-all duration-200 cursor-pointer hover:scale-105 {{ $srv->is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $srv->is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
+                                    {{ $srv->is_active ? 'PUBLISHED' : 'DRAFT (OFF)' }}
+                                </button>
+                            </form>
                         </td>
                         <td class="px-6 py-4 text-slate-600 max-w-xs">
                             <p class="line-clamp-2 text-xs leading-relaxed">{{ $srv->summary }}</p>
@@ -186,7 +302,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                            <button @click="showModal = true; editMode = true; currentService = {{ json_encode($srv) }}" 
+                            <button @click="openEditModal({{ json_encode($srv) }})" 
                                     class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-colors inline-flex items-center gap-1" title="Edit Layanan & SOP">
                                 <i class="fas fa-edit text-xs"></i> Edit SOP & Layanan
                             </button>
@@ -199,7 +315,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs">
+                        <td colspan="6" class="px-6 py-8 text-center text-slate-400 text-xs">
                             Belum ada standar pelayanan publik yang ditambahkan.
                         </td>
                     </tr>
@@ -213,9 +329,9 @@
         @endif
     </div>
 
-    <!-- Modal Form (Tambah / Edit Layanan & Persyaratan SOP) -->
+    <!-- Modal Form (Tambah / Edit Layanan & Persyaratan SOP dengan TinyMCE) -->
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        <div @click.away="showModal = false" class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-5 my-auto relative max-h-[90vh] overflow-y-auto text-left">
+        <div @click.away="showModal = false" class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-5 my-auto relative max-h-[92vh] overflow-y-auto text-left">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-handshake text-emerald-600 text-xl"></i>
@@ -224,7 +340,7 @@
                 <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i class="fas fa-times"></i></button>
             </div>
 
-            <form :action="editMode ? '/admin/services/' + currentService.id : '{{ route('admin.services.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+            <form :action="editMode ? '/admin/services/' + currentService.id : '{{ route('admin.services.store') }}'" method="POST" enctype="multipart/form-data" @submit="syncServiceTinyMCE()" class="space-y-4 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
@@ -236,11 +352,18 @@
                         <input type="text" name="title" required x-model="currentService.title" placeholder="Contoh: Pendampingan & Perizinan Koperasi" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-extrabold text-slate-900 text-sm">
                     </div>
 
+                    <!-- Kategori Sektor Layanan Minimalis & Responsif -->
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                            <span>Kategori Sektor Layanan <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-emerald-700 font-extrabold uppercase bg-emerald-100/70 px-2 py-0.5 rounded-md">Bisa Diketik & Pilih Master</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <i class="fas fa-handshake text-emerald-600"></i> Kategori Sektor Layanan <span class="text-rose-500">*</span>
+                            </label>
+                            <button type="button" @click="showAddMaster = !showAddMaster" 
+                                    class="px-2.5 py-1 text-[10px] rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-extrabold transition-all border border-emerald-300 flex items-center gap-1 cursor-pointer" 
+                                    title="Tambah / Kelola Kategori Baru">
+                                <i class="fas fa-plus text-[9px]"></i> Manajemen Kategori
+                            </button>
+                        </div>
                         
                         <div class="space-y-2">
                             <!-- Direct Editable Input Field with Master Datalist Autocomplete -->
@@ -250,7 +373,7 @@
                                        required 
                                        list="master_service_categories"
                                        x-model="currentService.category" 
-                                       placeholder="Pilih atau ketik kategori (misal: USAHA MIKRO, KOPERASI...)" 
+                                       placeholder="Pilih atau ketik kategori sektor..." 
                                        class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-extrabold text-slate-900 uppercase text-xs bg-white shadow-2xs">
                                 
                                 <datalist id="master_service_categories">
@@ -260,42 +383,42 @@
                                 </datalist>
                             </div>
 
-                            <!-- Quick Clickable Master Category Pills with + Tambah Master Inline -->
-                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                <span class="text-[10px] text-slate-400 font-bold self-center me-1">Master:</span>
-                                <template x-for="quickCat in categoriesList" :key="quickCat">
-                                    <button type="button" @click="currentService.category = quickCat"
-                                            :class="currentService.category === quickCat ? 'bg-emerald-700 text-white font-extrabold shadow-2xs border-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800 border-slate-200'"
-                                            class="px-2.5 py-1 text-[10px] rounded-lg border transition-all cursor-pointer">
-                                        <span x-text="quickCat"></span>
+                            <!-- Inline Add & Manage Master Input Box -->
+                            <div x-show="showAddMaster" x-cloak class="mt-2 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" 
+                                           x-model="newMasterInput" 
+                                           @keydown.enter.prevent="submitQuickMaster('layanan')" 
+                                           placeholder="Ketik nama kategori baru..." 
+                                           class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                                    <button type="button" 
+                                            @click="submitQuickMaster('layanan')" 
+                                            class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs cursor-pointer">
+                                        + Simpan
                                     </button>
-                                </template>
+                                    <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1 cursor-pointer">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
 
-                                <!-- Quick Add Master Button -->
-                                <button type="button" @click="showAddMaster = !showAddMaster" 
-                                        class="px-2 py-1 text-[10px] rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer" 
-                                        title="Tambah Master Kategori Baru secara Manual">
-                                    <i class="fas fa-plus text-[9px]"></i> Tambah Master
-                                </button>
+                                <!-- List of Master Categories with Delete Button -->
+                                <div class="pt-2 border-t border-emerald-200/70 space-y-1">
+                                    <span class="text-[10px] text-slate-500 font-bold block">Kategori Tersimpan (Klik untuk pilih / Hapus jika tidak diperlukan):</span>
+                                    <div class="flex flex-wrap items-center gap-1.5 max-h-32 overflow-y-auto pt-0.5">
+                                        <template x-for="cat in categoriesList" :key="cat">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white border border-emerald-200 text-slate-800 shadow-2xs group hover:border-emerald-400 transition-all">
+                                                <span @click="currentService.category = cat" class="cursor-pointer hover:text-emerald-700" x-text="cat"></span>
+                                                <button type="button" @click.stop="deleteQuickMaster(cat, 'layanan')" class="text-slate-300 hover:text-rose-600 transition-colors ml-0.5 cursor-pointer" title="Hapus Kategori Ini">
+                                                    <i class="fas fa-times-circle text-[11px]"></i>
+                                                </button>
+                                            </span>
+                                        </template>
+                                        <template x-if="!categoriesList || categoriesList.length === 0">
+                                            <span class="text-[10px] text-slate-400 italic">Belum ada kategori tersimpan.</span>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- Inline Add Master Input Box -->
-                            <div x-show="showAddMaster" x-cloak class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                                <input type="text" 
-                                       x-model="newMasterInput" 
-                                       @keydown.enter.prevent="submitQuickMaster('layanan')" 
-                                       placeholder="Ketik nama master kategori baru..." 
-                                       class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
-                                <button type="button" 
-                                        @click="submitQuickMaster('layanan')" 
-                                        class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs">
-                                    Simpan
-                                </button>
-                                <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1">
-                                    <i class="fas fa-times text-xs"></i>
-                                </button>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Anda dapat mengetik secara bebas atau mengklik pilihan master di atas.</p>
                         </div>
                     </div>
                 </div>
@@ -375,6 +498,14 @@
                         <label class="block font-bold text-slate-700 mb-1">Lokasi Pelayanan</label>
                         <input type="text" name="location" x-model="currentService.location" placeholder="Loket MPP Kraksaan" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-800">
                     </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-eye text-emerald-600 me-1"></i> Status Publikasi</label>
+                        <select name="is_active" x-model="currentService.is_active" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-800 text-xs">
+                            <option :value="1">PUBLISHED (Aktif / Tampil di Web)</option>
+                            <option :value="0">DRAFT (Nonaktif / Sembunyi)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>
@@ -394,26 +525,28 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block font-extrabold text-emerald-900 mb-1 flex items-center gap-1">
-                                <i class="fas fa-file-invoice text-emerald-600"></i> Persyaratan Dokumen (SOP)
+                            <label class="block font-extrabold text-emerald-900 mb-1 flex items-center justify-between">
+                                <span class="flex items-center gap-1"><i class="fas fa-file-invoice text-emerald-600"></i> Persyaratan Dokumen (SOP)</span>
+                                <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ Rich Text Editor</span>
                             </label>
-                            <textarea name="requirements" rows="7" x-model="currentService.requirements" 
-                                      placeholder="1. Permohonan Tera/Tera Ulang UTTP&#10;2. Peralatan UTTP siap uji&#10;3. Lokasi usaha di Kabupaten Probolinggo" 
+                            <textarea id="req_editor" name="requirements" rows="6" x-model="currentService.requirements" 
+                                      placeholder="1. Permohonan Tera/Tera Ulang UTTP..." 
                                       class="w-full px-3.5 py-2.5 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium leading-relaxed bg-white text-slate-900"></textarea>
                             <p class="text-[10px] text-slate-500 mt-1 font-medium">
-                                <i class="fas fa-info-circle text-emerald-600 me-1"></i>Setiap baris/poin yang diketik di sini akan otomatis tampil rapi di pop-up SOP website.
+                                <i class="fas fa-info-circle text-emerald-600 me-1"></i>Format poin, nomor, dan tebal teks kini menggunakan Rich Text Editor.
                             </p>
                         </div>
 
                         <div>
-                            <label class="block font-extrabold text-emerald-900 mb-1 flex items-center gap-1">
-                                <i class="fas fa-route text-emerald-600"></i> Prosedur & Alur Pelayanan
+                            <label class="block font-extrabold text-emerald-900 mb-1 flex items-center justify-between">
+                                <span class="flex items-center gap-1"><i class="fas fa-route text-emerald-600"></i> Prosedur & Alur Pelayanan</span>
+                                <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ Rich Text Editor</span>
                             </label>
-                            <textarea name="procedure" rows="7" x-model="currentService.procedure" 
-                                      placeholder="1. Mengajukan surat permohonan ke Loket MPP / DKUPP&#10;2. Penjadwalan Sidang Tera / Peneraan di Tempat&#10;3. Uji Teknis oleh Penera&#10;4. Pembubuhan Cap Tanda Tera (CTT)" 
+                            <textarea id="proc_editor" name="procedure" rows="6" x-model="currentService.procedure" 
+                                      placeholder="1. Mengajukan surat permohonan ke Loket MPP..." 
                                       class="w-full px-3.5 py-2.5 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium leading-relaxed bg-white text-slate-900"></textarea>
                             <p class="text-[10px] text-slate-500 mt-1 font-medium">
-                                <i class="fas fa-info-circle text-emerald-600 me-1"></i>Setiap baris/poin yang diketik di sini akan otomatis tampil rapi di pop-up SOP website.
+                                <i class="fas fa-info-circle text-emerald-600 me-1"></i>Format poin, nomor, dan tebal teks kini menggunakan Rich Text Editor.
                             </p>
                         </div>
                     </div>

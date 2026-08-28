@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\DeletesUploadFiles;
 
 class UmkmProduct extends Model
 {
-    use HasFactory;
+    use HasFactory, DeletesUploadFiles;
 
     protected $fillable = [
         'name',
@@ -30,4 +31,12 @@ class UmkmProduct extends Model
         'is_verified' => 'boolean',
         'price' => 'decimal:2',
     ];
+
+    protected static function booted()
+    {
+        static::deleting(function ($product) {
+            self::deleteUploadFile($product->image);
+        });
+    }
 }
+

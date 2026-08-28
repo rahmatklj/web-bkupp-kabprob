@@ -103,8 +103,8 @@ class PublicController extends Controller
         $data = $this->getCommonData();
 
         $sliders = HeroSlider::where('is_active', true)->orderBy('order', 'asc')->get();
-        $latestNews = NewsItem::orderBy('published_at', 'desc')->take(2)->get();
-        $popularNews = NewsItem::orderBy('views', 'desc')->take(5)->get();
+        $latestNews = NewsItem::where('is_published', true)->orderBy('published_at', 'desc')->take(2)->get();
+        $popularNews = NewsItem::where('is_published', true)->orderBy('views', 'desc')->take(5)->get();
         $sidebarWidgets = SidebarWidget::where('is_active', true)->orderBy('order', 'asc')->get();
         $relatedLinks = RelatedLink::where('is_active', true)->orderBy('order', 'asc')->get();
 
@@ -146,10 +146,10 @@ class PublicController extends Controller
     public function newsDetail($slug)
     {
         $data = $this->getCommonData();
-        $news = NewsItem::where('slug', $slug)->firstOrFail();
+        $news = NewsItem::where('slug', $slug)->where('is_published', true)->firstOrFail();
         $news->increment('views');
 
-        $latestNews = NewsItem::where('id', '!=', $news->id)->orderBy('published_at', 'desc')->take(4)->get();
+        $latestNews = NewsItem::where('id', '!=', $news->id)->where('is_published', true)->orderBy('published_at', 'desc')->take(4)->get();
         $sidebarWidgets = SidebarWidget::where('is_active', true)->orderBy('order', 'asc')->get();
 
         return view('public.news_detail', array_merge($data, compact('news', 'latestNews', 'sidebarWidgets')));
@@ -158,7 +158,7 @@ class PublicController extends Controller
     public function informasi(Request $request)
     {
         $data = $this->getCommonData();
-        $query = NewsItem::query();
+        $query = NewsItem::where('is_published', true);
 
         if ($request->filled('q')) {
             $query->where('title', 'like', '%' . $request->q . '%')
@@ -253,7 +253,7 @@ class PublicController extends Controller
 
     public function layananDetail($slug)
     {
-        $service = Service::where('slug', $slug)->first();
+        $service = Service::where('slug', $slug)->where('is_active', true)->first();
         if ($service && $service->external_url && filter_var($service->external_url, FILTER_VALIDATE_URL)) {
             return redirect()->away($service->external_url);
         }
@@ -264,7 +264,7 @@ class PublicController extends Controller
     public function dokumen(Request $request)
     {
         $data = $this->getCommonData();
-        $query = PublicDocument::query();
+        $query = PublicDocument::where('is_published', true);
 
         if ($request->filled('q')) {
             $query->where('title', 'like', '%' . $request->q . '%');

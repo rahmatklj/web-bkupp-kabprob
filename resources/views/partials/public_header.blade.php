@@ -12,6 +12,25 @@ html, body {
     background-size: 200% 200% !important;
     animation: navbarRunningLine 1.2s ease infinite !important;
 }
+/* Custom Smooth Scrollbar for Submenus */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+}
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
 </style>
 
 <!-- Top Bar (Minimalist & Responsive without Horizontal Overflow) -->
@@ -80,7 +99,7 @@ html, body {
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 translate-y-2"
-                                     class="absolute left-0 mt-1 w-52 rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5 border border-slate-100 py-2 z-50">
+                                     class="absolute left-0 mt-1 w-52 rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5 border border-slate-100 py-2 z-50 max-h-[65vh] sm:max-h-[75vh] overflow-y-auto custom-scrollbar">
                                     @foreach($menu->children as $child)
                                         <a href="{{ $child->url }}" target="{{ $child->target }}"
                                            class="group/item flex items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
@@ -159,7 +178,7 @@ html, body {
                             <span>{{ $menu->title }}</span>
                             <i class="fas fa-chevron-down text-xs transition-transform" :class="{ 'rotate-180': subOpen }"></i>
                         </button>
-                        <div x-show="subOpen" class="pl-4 space-y-1 mt-1">
+                        <div x-show="subOpen" class="pl-4 space-y-1 mt-1 max-h-60 overflow-y-auto custom-scrollbar">
                             @foreach($menu->children as $child)
                                 <a href="{{ $child->url }}" class="block px-3 py-2 text-sm text-slate-600 hover:text-emerald-600 rounded-md">
                                     {{ $child->title }}

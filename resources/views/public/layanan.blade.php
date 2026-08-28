@@ -170,8 +170,8 @@
                     <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                         <i class="fas fa-list-check text-emerald-700"></i> Persyaratan Dokumen
                     </h3>
-                    <div class="prose text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200 whitespace-pre-line">
-                        {!! nl2br($service->requirements ?: 'Belum ada rincian persyaratan dokumen.') !!}
+                    <div class="prose max-w-none text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        {!! $service->requirements ?: '<p class="text-slate-400 font-medium">Belum ada rincian persyaratan dokumen.</p>' !!}
                     </div>
                 </div>
 
@@ -179,8 +179,8 @@
                     <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                         <i class="fas fa-route text-emerald-700"></i> Prosedur & Alur Pelayanan
                     </h3>
-                    <div class="prose text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200 whitespace-pre-line">
-                        {!! nl2br($service->procedure ?: 'Belum ada rincian prosedur alur pelayanan.') !!}
+                    <div class="prose max-w-none text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        {!! $service->procedure ?: '<p class="text-slate-400 font-medium">Belum ada rincian prosedur alur pelayanan.</p>' !!}
                     </div>
                 </div>
 

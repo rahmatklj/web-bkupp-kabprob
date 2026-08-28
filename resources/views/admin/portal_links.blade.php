@@ -3,6 +3,42 @@
 @section('page_title', 'Kelola Integrasi & Link Portal Publik')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        const ids = ['market_desc_editor', 'sp4n_desc_editor', 'wa_portal_default_msg_editor', 'wa_portal_desc_editor', 'ppid_portal_desc_editor'];
+        ids.forEach(id => {
+            tinymce.init({
+                selector: '#' + id,
+                height: 200,
+                menubar: 'file edit view insert format table help',
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+                toolbar_mode: 'wrap',
+                content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.7; color: #1e293b; padding: 10px; } p { margin-bottom: 0.75rem; }',
+                branding: false,
+                promotion: false,
+                setup: function (editor) {
+                    editor.on('change keyup NodeChange', function () {
+                        editor.save();
+                    });
+                }
+            });
+        });
+    }
+});
+
+function syncPortalLinksTinyMCE() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.triggerSave();
+    }
+}
+</script>
 <div class="space-y-6 max-w-5xl mx-auto" x-data="{ 
     activeTab: '{{ request('tab', $activeTab ?? 'harga-pasar') }}',
     imageErrorMsg: null,
@@ -14,7 +50,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -110,7 +146,7 @@
             </div>
 
             <!-- Form Edit Link Web Harga Pasar -->
-            <form action="{{ route('admin.market-prices.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+            <form action="{{ route('admin.market-prices.store') }}" method="POST" enctype="multipart/form-data" @submit="syncPortalLinksTinyMCE()" class="space-y-5 text-xs">
                 @csrf
 
                 <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
@@ -157,8 +193,11 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="font-bold text-slate-700 block">Keterangan / Deskripsi Singkat</label>
-                    <textarea name="description" rows="3" 
+                    <label class="font-bold text-slate-700 block flex items-center justify-between">
+                        <span>Keterangan / Deskripsi Singkat</span>
+                        <span class="text-[9px] bg-amber-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="market_desc_editor" name="description" rows="3" 
                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-800 focus:ring-2 focus:ring-amber-600 focus:outline-none">{{ old('description', $marketWebDesc ?? 'Update harga komoditas pangan harian dari Pasar Kraksaan, Semampir, Paiton, dan Dringu Kabupaten Probolinggo & Jawa Timur.') }}</textarea>
                 </div>
 
@@ -263,7 +302,7 @@
                 @endif
             </div>
 
-            <form action="{{ route('admin.sp4n-lapor.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+            <form action="{{ route('admin.sp4n-lapor.update') }}" method="POST" enctype="multipart/form-data" @submit="syncPortalLinksTinyMCE()" class="space-y-5 text-xs">
                 @csrf
 
                 <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl space-y-2">
@@ -292,8 +331,11 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Keterangan Singkat Portal Pengaduan</label>
-                    <textarea name="lapor_sp4n_desc" rows="2" placeholder="Deskripsi singkat mengenai layanan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed">{{ $laporSp4nDesc }}</textarea>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span>Keterangan Singkat Portal Pengaduan</span>
+                        <span class="text-[9px] bg-rose-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="sp4n_desc_editor" name="lapor_sp4n_desc" rows="3" placeholder="Deskripsi singkat mengenai layanan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed">{{ $laporSp4nDesc }}</textarea>
                 </div>
 
                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
@@ -399,8 +441,11 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Draf Pesan Pembuka Otomatis (Prefilled Text) <span class="text-rose-500">*</span></label>
-                    <textarea name="whatsapp_default_message" rows="3" required placeholder="Halo DKUPP Kabupaten Probolinggo, saya ingin menyampaikan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed font-medium text-slate-800">{{ $waMessage }}</textarea>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span>Draf Pesan Pembuka Otomatis (Prefilled Text) <span class="text-rose-500">*</span></span>
+                        <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="wa_portal_default_msg_editor" name="whatsapp_default_message" rows="3" required placeholder="Halo DKUPP Kabupaten Probolinggo, saya ingin menyampaikan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed font-medium text-slate-800">{{ $waMessage }}</textarea>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -416,8 +461,11 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Keterangan Singkat Kartu Akses Cepat</label>
-                    <textarea name="whatsapp_desc" rows="2" placeholder="Pengaduan & konsultasi cepat terhubung langsung ke WhatsApp resmi DKUPP..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed text-slate-700">{{ $waDesc }}</textarea>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span>Keterangan Singkat Kartu Akses Cepat</span>
+                        <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="wa_portal_desc_editor" name="whatsapp_desc" rows="3" placeholder="Pengaduan & konsultasi cepat terhubung langsung ke WhatsApp resmi DKUPP..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed text-slate-700">{{ $waDesc }}</textarea>
                 </div>
 
                 <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
@@ -451,7 +499,7 @@
                 @endif
             </div>
 
-            <form action="{{ route('admin.ppid.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+            <form action="{{ route('admin.ppid.update') }}" method="POST" enctype="multipart/form-data" @submit="syncPortalLinksTinyMCE()" class="space-y-5 text-xs">
                 @csrf
 
                 <div class="space-y-1.5 p-4 bg-sky-50 border border-sky-200 rounded-2xl">
@@ -498,8 +546,11 @@
                 </div>
 
                 <div>
-                    <label class="font-bold text-slate-700 block mb-1">Deskripsi Singkat Portal PPID</label>
-                    <textarea name="ppid_desc" rows="2" placeholder="Penjelasan singkat mengenai layanan PPID..." 
+                    <label class="font-bold text-slate-700 block mb-1 flex items-center justify-between">
+                        <span>Deskripsi Singkat Portal PPID</span>
+                        <span class="text-[9px] bg-sky-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="ppid_portal_desc_editor" name="ppid_desc" rows="3" placeholder="Penjelasan singkat mengenai layanan PPID..." 
                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">{{ $ppidDesc }}</textarea>
                 </div>
 

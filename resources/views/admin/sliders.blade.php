@@ -16,7 +16,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -179,16 +179,9 @@
                     </template>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Teks Tombol CTA</label>
-                        <input type="text" name="button_text" x-model="currentSlider.button_text" placeholder="Lapor Bencana / Selengkapnya" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">URL Link Tombol</label>
-                        <input type="text" name="button_url" x-model="currentSlider.button_url" placeholder="/kontak" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                    </div>
-                </div>
+                <!-- Hidden CTA Button Inputs (Sembunyi) -->
+                <input type="hidden" name="button_text" x-model="currentSlider.button_text">
+                <input type="hidden" name="button_url" x-model="currentSlider.button_url">
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>

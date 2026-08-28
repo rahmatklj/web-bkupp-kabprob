@@ -39,6 +39,7 @@ Route::get('/galeri', [PublicController::class, 'galeri'])->name('galeri');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/admin/login', function() { return redirect()->route('login'); });
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/force-login', [AuthController::class, 'forceLogin'])->name('force.login');
 Route::get('/captcha-refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -56,6 +57,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/services', [AdminController::class, 'services'])->name('services');
     Route::post('/services', [AdminController::class, 'serviceStore'])->name('services.store');
     Route::put('/services/{id}', [AdminController::class, 'serviceUpdate'])->name('services.update');
+    Route::put('/services/{id}/toggle', [AdminController::class, 'serviceToggleStatus'])->name('services.toggle');
     Route::delete('/services/{id}', [AdminController::class, 'serviceDestroy'])->name('services.destroy');
 
     // 2. MONITORING HARGA PASAR CRUD
@@ -68,6 +70,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/news', [AdminController::class, 'news'])->name('news');
     Route::post('/news', [AdminController::class, 'newsStore'])->name('news.store');
     Route::put('/news/{id}', [AdminController::class, 'newsUpdate'])->name('news.update');
+    Route::put('/news/{id}/toggle', [AdminController::class, 'newsToggleStatus'])->name('news.toggle');
     Route::delete('/news/{id}', [AdminController::class, 'newsDestroy'])->name('news.destroy');
 
     // 4. GALERI FOTO & VIDEO CRUD
@@ -80,12 +83,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/documents', [AdminController::class, 'documents'])->name('documents');
     Route::post('/documents', [AdminController::class, 'documentStore'])->name('documents.store');
     Route::put('/documents/{id}', [AdminController::class, 'documentUpdate'])->name('documents.update');
+    Route::put('/documents/{id}/toggle', [AdminController::class, 'documentToggleStatus'])->name('documents.toggle');
     Route::delete('/documents/{id}', [AdminController::class, 'documentDestroy'])->name('documents.destroy');
 
     // 6. MASTER KATEGORI CRUD
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::post('/categories', [AdminController::class, 'categoryStore'])->name('categories.store');
     Route::post('/categories/quick-store', [AdminController::class, 'categoryQuickStore'])->name('categories.quick-store');
+    Route::post('/categories/quick-destroy', [AdminController::class, 'categoryQuickDestroy'])->name('categories.quick-destroy');
     Route::put('/categories/{id}', [AdminController::class, 'categoryUpdate'])->name('categories.update');
     Route::delete('/categories/{id}', [AdminController::class, 'categoryDestroy'])->name('categories.destroy');
 

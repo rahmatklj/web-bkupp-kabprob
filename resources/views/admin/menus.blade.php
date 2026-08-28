@@ -8,6 +8,8 @@
     editMode: false, 
     currentMenu: {},
     linkType: 'url',
+    showNewParentInput: false,
+    newParentTitle: '',
     detectLinkType(url) {
         if (!url) return 'url';
         const cleanUrl = url.toLowerCase();
@@ -17,13 +19,17 @@
     },
     openModalAdd() {
         this.editMode = false;
-        this.currentMenu = { is_active: true, target: '_self', order: 0, url: '' };
+        this.currentMenu = { is_active: true, target: '_self', order: 0, url: '', parent_id: '' };
+        this.showNewParentInput = false;
+        this.newParentTitle = '';
         this.linkType = 'url';
         this.showModal = true;
     },
     openModalEdit(menu) {
         this.editMode = true;
         this.currentMenu = Object.assign({}, menu);
+        this.showNewParentInput = false;
+        this.newParentTitle = '';
         this.linkType = this.detectLinkType(menu.url);
         this.showModal = true;
     }
@@ -133,13 +139,40 @@
                 </template>
                 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Parent Menu (Kosongkan jika Menu Utama)</label>
-                    <select name="parent_id" x-model="currentMenu.parent_id" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                        <option value="">-- Main Menu Utama --</option>
-                        @foreach($allParents as $parent)
-                            <option value="{{ $parent->id }}">{{ $parent->title }}</option>
-                        @endforeach
-                    </select>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700">Parent Menu (Kosongkan jika Menu Utama)</label>
+                        <button type="button" @click="showNewParentInput = !showNewParentInput" 
+                                class="text-[11px] font-extrabold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-1 transition-colors">
+                            <i class="fas" :class="showNewParentInput ? 'fa-list-ul' : 'fa-plus-circle'"></i>
+                            <span x-text="showNewParentInput ? 'Pilih Dari Daftar Parent' : '+ Buat Parent Menu Baru'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Dropdown Pilihan Parent Menu -->
+                    <div x-show="!showNewParentInput">
+                        <select name="parent_id" x-model="currentMenu.parent_id" 
+                                @change="if ($event.target.value === '__new__') { showNewParentInput = true; currentMenu.parent_id = ''; }"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <option value="">-- Main Menu Utama --</option>
+                            @foreach($allParents as $parent)
+                                <option value="{{ $parent->id }}">{{ $parent->title }}</option>
+                            @endforeach
+                            <option value="__new__" class="font-extrabold text-orange-600 bg-orange-50">+ Buat Parent Menu Utama Baru...</option>
+                        </select>
+                    </div>
+
+                    <!-- Input Ketik Nama Parent Menu Utama Baru -->
+                    <div x-show="showNewParentInput" class="space-y-1.5 p-3 bg-orange-50/70 border border-orange-200 rounded-xl mt-1">
+                        <label class="block font-bold text-orange-800 text-[11px]">
+                            <i class="fas fa-folder-plus text-orange-600 me-1"></i> Nama Parent Menu Utama Baru:
+                        </label>
+                        <input type="text" name="new_parent_title" x-model="newParentTitle" 
+                               placeholder="Contoh: PUBLIKASI & MEDIA / PERIZINAN KOPERASI" 
+                               class="w-full px-3 py-2 border border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none bg-white font-bold text-slate-800">
+                        <p class="text-[10px] text-orange-700 font-medium leading-snug">
+                            <i class="fas fa-info-circle me-1"></i> Sistem akan otomatis membuat Parent Menu Utama baru ini di database terlebih dahulu.
+                        </p>
+                    </div>
                 </div>
 
                 <div>
@@ -186,7 +219,7 @@
                                    const file = $event.target.files[0];
                                    const ext = file.name.split('.').pop().toLowerCase();
                                    if (ext !== 'pdf' && file.type !== 'application/pdf') {
-                                       alert('⚠️ HANYA BERKAS PDF YANG DIPERBOLEHKAN!\n\nAnda memilih berkas .' + ext.toUpperCase() + '. Mohon unggah berkas berformat PDF (.pdf) saja.');
+                                       showUploadErrorSwal('⚠️ GAGAL UPLOAD: Anda memilih berkas berformat .' + ext.toUpperCase() + '! Mohon unggah berkas berformat PDF (.pdf) saja.', 'PDF (.pdf)');
                                        $event.target.value = '';
                                    }
                                }

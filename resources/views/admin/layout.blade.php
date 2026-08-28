@@ -40,6 +40,29 @@
         [x-cloak] { display: none !important; }
     </style>
 
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function showUploadErrorSwal(msg, allowedTypesStr = 'JPG, PNG, atau WEBP') {
+            const cleanMsg = msg || ('⚠️ GAGAL UPLOAD: Berkas yang Anda pilih tidak didukung! Mohon hanya mengunggah file berformat ' + allowedTypesStr + '.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format File Tidak Sesuai!',
+                    html: '<div style="font-size:13px; font-weight:700; line-height:1.6; color:#be123c;" class="space-y-2"><div>' + cleanMsg + '</div><div style="font-size:11px; color:#64748b; font-weight:600; margin-top:8px;">Pastikan jenis berkas sesuai dengan ketentuan aplikasi.</div></div>',
+                    confirmButtonText: '<i class="fas fa-check-circle me-1"></i> Saya Mengerti',
+                    confirmButtonColor: '#e11d48',
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-slate-200',
+                        confirmButton: 'px-6 py-2.5 rounded-xl font-bold text-xs shadow-md'
+                    }
+                });
+            } else {
+                alert(cleanMsg);
+            }
+        }
+    </script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex" x-data="{ sidebarOpen: false }">
@@ -108,17 +131,12 @@
 
                         <a href="{{ route('admin.documents') }}" 
                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.documents*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
-                            <i class="fas fa-file-pdf text-xs text-rose-400"></i> Dokumen Kinerja PDF
+                            <i class="fas fa-file-pdf text-xs text-rose-400"></i> Dokumen Kinerja
                         </a>
 
                         <a href="{{ route('admin.services') }}" 
                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.services*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
                             <i class="fas fa-handshake text-xs text-emerald-400"></i> Layanan Publik & SOP
-                        </a>
-
-                        <a href="{{ route('admin.categories') }}" 
-                           class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.categories*') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
-                            <i class="fas fa-tags text-xs text-amber-400"></i> Master Kategori
                         </a>
 
                         <a href="{{ route('admin.gallery') }}" 
@@ -142,7 +160,7 @@
                                 class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-bold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer">
                             <div class="flex items-center gap-2.5">
                                 <i class="fas fa-globe text-cyan-400 text-sm"></i>
-                                <span>Portal & Integrasi Publik</span>
+                                <span>Link Portal</span>
                             </div>
                             <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openPortal }"></i>
                         </button>
@@ -160,7 +178,7 @@
 
                             <a href="{{ route('admin.qr-code') }}" 
                                class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all {{ request()->routeIs('admin.qr-code') ? 'bg-emerald-700 text-white font-bold' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
-                                <i class="fas fa-qrcode text-xs text-emerald-400"></i> Kode QR & SKM
+                                <i class="fas fa-qrcode text-xs text-emerald-400"></i> Kode QR & Hasil SKM
                             </a>
 
                             <a href="{{ route('admin.sliders') }}" 
@@ -293,6 +311,11 @@
                     <i class="fas fa-exclamation-circle text-base"></i>
                     <span>{{ session('error') }}</span>
                 </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showUploadErrorSwal(@json(session('error')));
+                    });
+                </script>
             @endif
 
             @yield('content')

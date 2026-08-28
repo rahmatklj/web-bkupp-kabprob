@@ -13,7 +13,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }

@@ -15,7 +15,25 @@
 
     @include('partials.public_header')
 
-    <main class="flex-grow py-8 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8" x-data="{ activeTab: '{{ request()->get('tab', 'foto') }}', activePhoto: null, activeVideo: null }">
+    <main class="flex-grow py-8 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8" 
+          x-data="{ 
+              activeTab: '{{ request()->get('tab', 'foto') }}', 
+              activeAlbum: null, 
+              activePhotoIdx: 0,
+              activeVideo: null,
+              openAlbum(album) {
+                  this.activeAlbum = album;
+                  this.activePhotoIdx = 0;
+              },
+              nextPhoto() {
+                  if (!this.activeAlbum || !this.activeAlbum.images.length) return;
+                  this.activePhotoIdx = (this.activePhotoIdx + 1) % this.activeAlbum.images.length;
+              },
+              prevPhoto() {
+                  if (!this.activeAlbum || !this.activeAlbum.images.length) return;
+                  this.activePhotoIdx = (this.activePhotoIdx - 1 + this.activeAlbum.images.length) % this.activeAlbum.images.length;
+              }
+          }">
         
         <!-- Tombol Kembali ke Beranda Utama -->
         <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
@@ -39,7 +57,7 @@
                         :class="activeTab === 'foto' ? 'bg-white text-emerald-800 shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
                         class="px-5 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2">
                     <i class="fas fa-camera text-emerald-600 text-sm"></i>
-                    <span>Foto Kegiatan</span>
+                    <span>Album Foto Kegiatan</span>
                 </button>
                 <button @click="activeTab = 'video'" 
                         :class="activeTab === 'video' ? 'bg-white text-red-700 shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
@@ -50,22 +68,30 @@
             </div>
         </div>
 
-        <!-- FOTO TAB CONTENT -->
+        <!-- FOTO TAB CONTENT (ALBUM FOTO) -->
         <div x-show="activeTab === 'foto'" class="space-y-6">
             @if(isset($imageGalleries) && $imageGalleries->count() > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach($imageGalleries as $img)
-                        <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-all group cursor-pointer"
-                             @click="activePhoto = {{ json_encode(['title' => $img->title, 'caption' => $img->caption, 'file_path' => $img->file_path]) }}">
-                            <div class="aspect-square bg-slate-100 overflow-hidden relative">
-                                <img src="{{ $img->file_path }}" alt="{{ $img->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
+                             @click="openAlbum({{ json_encode(['title' => $img->title, 'category' => $img->category ?: 'Dokumentasi Kegiatan', 'caption' => $img->caption, 'images' => $img->images]) }})">
+                            <div class="aspect-video bg-slate-900 overflow-hidden relative">
+                                <img src="{{ $img->cover_image }}" alt="{{ $img->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                
+                                <span class="absolute top-2.5 right-2.5 bg-slate-950/80 backdrop-blur-xs text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-slate-800 shadow-md">
+                                    <i class="fas fa-camera text-emerald-400"></i> {{ $img->photo_count }} Foto Album
+                                </span>
+
                                 <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-3">
-                                    <span class="px-3 py-1.5 bg-emerald-600/90 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
-                                        <i class="fas fa-search-plus"></i> Lihat Foto
+                                    <span class="px-3.5 py-2 bg-emerald-600/90 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5">
+                                        <i class="fas fa-search-plus"></i> Buka Album Foto ({{ $img->photo_count }})
                                     </span>
                                 </div>
                             </div>
                             <div class="p-4 space-y-1">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider inline-block mb-1">
+                                    {{ $img->category ?: 'Dokumentasi Kegiatan' }}
+                                </span>
                                 <h4 class="font-extrabold text-slate-900 text-xs line-clamp-2 leading-snug group-hover:text-emerald-700 transition-colors">{{ $img->title }}</h4>
                                 @if($img->caption)
                                     <p class="text-[11px] text-slate-500 line-clamp-2">{{ $img->caption }}</p>
@@ -78,7 +104,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($newsWithImages as $item)
                         <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer"
-                             @click="activePhoto = {{ json_encode(['title' => $item->title, 'caption' => $item->category, 'file_path' => $item->image_url]) }}">
+                             @click="openAlbum({{ json_encode(['title' => $item->title, 'category' => $item->category, 'caption' => 'Dokumentasi Berita Kegiatan', 'images' => [$item->image_url]]) }})">
                             <div class="h-56 bg-slate-100 overflow-hidden relative group">
                                 <img src="{{ $item->image_url }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                 <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-3">
@@ -158,8 +184,8 @@
             @endif
         </div>
 
-        <!-- Photo Lightbox Modal Popup (Klik Foto Tampil di Web) -->
-        <div x-show="activePhoto !== null" 
+        <!-- Photo Album Lightbox Modal Popup (Klik Album Tampil Slide & Grid) -->
+        <div x-show="activeAlbum !== null" 
              x-cloak 
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
@@ -167,38 +193,69 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             class="fixed inset-0 z-50 p-3 sm:p-6 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+             class="fixed inset-0 z-50 p-2 sm:p-6 flex items-center justify-center bg-slate-950/95 backdrop-blur-md">
             
-            <div @click.away="activePhoto = null" class="bg-slate-900 rounded-3xl max-w-5xl w-full max-h-[92vh] border border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
+            <div @click.away="activeAlbum = null" class="bg-slate-900 rounded-3xl max-w-5xl w-full max-h-[95vh] border border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
                 <!-- Modal Header -->
-                <div class="p-4 sm:p-5 bg-slate-950 text-white flex items-center justify-between gap-4 border-b border-slate-800 shrink-0">
+                <div class="p-3.5 sm:p-4 bg-slate-950 text-white flex items-center justify-between gap-4 border-b border-slate-800 shrink-0">
                     <div class="flex items-center gap-3 overflow-hidden">
                         <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
-                            <i class="fas fa-camera"></i>
+                            <i class="fas fa-images"></i>
                         </div>
                         <div class="truncate">
-                            <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block">Dokumentasi Foto Kegiatan</span>
-                            <h3 class="font-extrabold text-xs sm:text-sm text-white truncate" x-text="activePhoto ? activePhoto.title : ''"></h3>
+                            <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                <span>Album Dokumentasi</span>
+                                <template x-if="activeAlbum && activeAlbum.images">
+                                    <span class="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-bold border border-emerald-800" x-text="`Foto ${activePhotoIdx + 1} dari ${activeAlbum.images.length}`"></span>
+                                </template>
+                            </span>
+                            <h3 class="font-extrabold text-xs sm:text-sm text-white truncate" x-text="activeAlbum ? activeAlbum.title : ''"></h3>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <a :href="activePhoto ? activePhoto.file_path : '#'" target="_blank" download class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
+                        <a :href="activeAlbum && activeAlbum.images ? activeAlbum.images[activePhotoIdx] : '#'" target="_blank" download class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
                             <i class="fas fa-download text-[10px]"></i> <span class="hidden sm:inline">Unduh Foto</span>
                         </a>
-                        <button @click="activePhoto = null" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors">
+                        <button @click="activeAlbum = null" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Modal Content Body (Full HD Image Preview) -->
-                <div class="flex-grow bg-slate-950 p-3 sm:p-6 relative overflow-auto flex flex-col justify-center items-center">
-                    <template x-if="activePhoto">
-                        <img :src="activePhoto.file_path" :alt="activePhoto.title" class="max-h-[70vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl border border-slate-800 mx-auto">
+                <!-- Main Photo Viewing Slider Area -->
+                <div class="flex-grow bg-slate-950 p-2 sm:p-4 relative overflow-hidden flex flex-col justify-center items-center select-none">
+                    <!-- Prev Arrow Button -->
+                    <template x-if="activeAlbum && activeAlbum.images && activeAlbum.images.length > 1">
+                        <button @click="prevPhoto()" class="absolute left-3 z-10 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white border border-slate-700 hover:border-emerald-500 flex items-center justify-center text-lg transition-all shadow-xl hover:scale-110 active:scale-95">
+                            <i class="fas fa-chevron-left me-0.5"></i>
+                        </button>
                     </template>
-                    <div class="mt-4 text-center max-w-2xl px-2" x-show="activePhoto && activePhoto.caption">
-                        <p class="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed" x-text="activePhoto ? activePhoto.caption : ''"></p>
+
+                    <!-- Active Image -->
+                    <template x-if="activeAlbum && activeAlbum.images && activeAlbum.images.length">
+                        <img :src="activeAlbum.images[activePhotoIdx]" :alt="activeAlbum.title" class="max-h-[60vh] sm:max-h-[65vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl border border-slate-800 mx-auto transition-all duration-300">
+                    </template>
+
+                    <!-- Next Arrow Button -->
+                    <template x-if="activeAlbum && activeAlbum.images && activeAlbum.images.length > 1">
+                        <button @click="nextPhoto()" class="absolute right-3 z-10 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white border border-slate-700 hover:border-emerald-500 flex items-center justify-center text-lg transition-all shadow-xl hover:scale-110 active:scale-95">
+                            <i class="fas fa-chevron-right ms-0.5"></i>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Bottom Photo Album Thumbnail Strip -->
+                <div class="p-3 bg-slate-950 border-t border-slate-800 shrink-0 space-y-2" x-show="activeAlbum && activeAlbum.images && activeAlbum.images.length > 0">
+                    <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+                        <template x-for="(img, idx) in (activeAlbum ? activeAlbum.images : [])" :key="idx">
+                            <button @click="activePhotoIdx = idx" 
+                                    :class="activePhotoIdx === idx ? 'ring-2 ring-emerald-500 scale-105 opacity-100' : 'opacity-50 hover:opacity-100 hover:scale-105'" 
+                                    class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-slate-800 transition-all cursor-pointer bg-slate-900">
+                                <img :src="img" class="w-full h-full object-cover">
+                            </button>
+                        </template>
                     </div>
+                    <p class="text-[11px] text-slate-400 font-medium text-center truncate" x-text="activeAlbum ? activeAlbum.caption : ''"></p>
                 </div>
             </div>
         </div>

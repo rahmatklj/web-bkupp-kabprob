@@ -3,6 +3,40 @@
 @section('page_title', 'Kelola Maklumat Pelayanan')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#maklumat_editor',
+            height: 280,
+            menubar: 'file edit view insert format table help',
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+            toolbar_mode: 'wrap',
+            content_style: 'body { font-family: sans-serif; font-size: 14px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 1rem; }',
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                editor.on('change keyup NodeChange', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+
+function syncMaklumatTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('maklumat_editor')) {
+        tinymce.get('maklumat_editor').save();
+    }
+}
+</script>
+
 <div class="max-w-4xl space-y-6 mx-auto" x-data="{
     imageErrorMsg: null,
     validateImageFile(e) {
@@ -13,7 +47,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -45,15 +79,16 @@
 
     <!-- Form Maklumat Pelayanan -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <form action="{{ route('admin.maklumat.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+        <form action="{{ route('admin.maklumat.update') }}" method="POST" enctype="multipart/form-data" @submit="syncMaklumatTinyMCE()" class="space-y-5 text-xs">
             @csrf
 
             <!-- Teks Maklumat -->
             <div class="space-y-1.5">
-                <label class="font-extrabold text-slate-800 block text-xs">
-                    <i class="fas fa-quote-left text-emerald-600 me-1"></i> Teks Pernyataan Maklumat Pelayanan <span class="text-rose-500">*</span>
+                <label class="font-extrabold text-slate-800 block text-xs flex items-center justify-between">
+                    <span><i class="fas fa-quote-left text-emerald-600 me-1"></i> Teks Pernyataan Maklumat Pelayanan <span class="text-rose-500">*</span></span>
+                    <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
                 </label>
-                <textarea name="maklumat_text" rows="4" required placeholder="Isi teks komitmen maklumat pelayanan..."
+                <textarea id="maklumat_editor" name="maklumat_text" rows="5" required placeholder="Isi teks komitmen maklumat pelayanan..."
                           class="w-full px-4 py-3 rounded-2xl border border-slate-300 font-bold text-slate-800 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none leading-relaxed">{{ old('maklumat_text', $maklumatText) }}</textarea>
             </div>
 

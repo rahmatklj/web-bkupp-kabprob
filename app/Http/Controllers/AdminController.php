@@ -91,6 +91,7 @@ class AdminController extends Controller
 
         $imageUrl = $request->hasFile('image_file') ? null : ($request->image_url ?: $slider->image_url);
         if ($request->hasFile('image_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($slider->image_url);
             $file = $request->file('image_file');
             $filename = 'slider_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/sliders');
@@ -162,10 +163,33 @@ class AdminController extends Controller
             }
         }
 
+        $parentId = ($request->filled('parent_id') && $request->parent_id !== '__new__') ? (int)$request->parent_id : null;
+
+        if ($request->filled('new_parent_title')) {
+            $newTitle = mb_strtoupper(trim($request->new_parent_title));
+            $existingParent = NavigationMenu::whereNull('parent_id')
+                ->where('title', 'like', $newTitle)
+                ->first();
+            if ($existingParent) {
+                $parentId = $existingParent->id;
+            } else {
+                $maxOrder = NavigationMenu::whereNull('parent_id')->max('order') ?? 0;
+                $newParent = NavigationMenu::create([
+                    'title' => $newTitle,
+                    'url' => '#',
+                    'parent_id' => null,
+                    'order' => $maxOrder + 1,
+                    'target' => '_self',
+                    'is_active' => true,
+                ]);
+                $parentId = $newParent->id;
+            }
+        }
+
         NavigationMenu::create([
             'title' => $request->title,
             'url' => $url,
-            'parent_id' => $request->parent_id ?: null,
+            'parent_id' => $parentId,
             'order' => $request->order ?? 0,
             'target' => $target,
             'is_active' => $request->has('is_active'),
@@ -189,6 +213,9 @@ class AdminController extends Controller
         $target = $request->target ?? $menu->target;
 
         if ($request->hasFile('menu_file')) {
+            if ($menu->url && str_contains($menu->url, '/uploads/menus/')) {
+                \App\Traits\DeletesUploadFiles::deleteUploadFile($menu->url);
+            }
             $file = $request->file('menu_file');
             $filename = 'menu_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/menus');
@@ -200,10 +227,33 @@ class AdminController extends Controller
             }
         }
 
+        $parentId = ($request->filled('parent_id') && $request->parent_id !== '__new__') ? (int)$request->parent_id : $menu->parent_id;
+
+        if ($request->filled('new_parent_title')) {
+            $newTitle = mb_strtoupper(trim($request->new_parent_title));
+            $existingParent = NavigationMenu::whereNull('parent_id')
+                ->where('title', 'like', $newTitle)
+                ->first();
+            if ($existingParent) {
+                $parentId = $existingParent->id;
+            } else {
+                $maxOrder = NavigationMenu::whereNull('parent_id')->max('order') ?? 0;
+                $newParent = NavigationMenu::create([
+                    'title' => $newTitle,
+                    'url' => '#',
+                    'parent_id' => null,
+                    'order' => $maxOrder + 1,
+                    'target' => '_self',
+                    'is_active' => true,
+                ]);
+                $parentId = $newParent->id;
+            }
+        }
+
         $menu->update([
             'title' => $request->title,
             'url' => $url,
-            'parent_id' => $request->parent_id ?: null,
+            'parent_id' => $parentId,
             'order' => $request->order ?? 0,
             'target' => $target,
             'is_active' => $request->has('is_active'),
@@ -258,6 +308,7 @@ class AdminController extends Controller
             'image_url' => $imageUrl,
             'category' => $category,
             'published_at' => $request->published_at ?? now(),
+            'is_published' => $request->has('is_published') ? (bool)$request->is_published : true,
         ]);
 
         \App\Models\ActivityLog::record('CREATE', 'Berita & Informasi', 'Mempublikasikan berita baru: ' . $request->title);
@@ -278,6 +329,7 @@ class AdminController extends Controller
         $imageUrl = $request->image_url ?: $news->image_url;
 
         if ($request->hasFile('image_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($news->image_url);
             $file = $request->file('image_file');
             $filename = 'news_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/news');
@@ -293,10 +345,20 @@ class AdminController extends Controller
             'image_url' => $imageUrl,
             'category' => $category,
             'published_at' => $request->published_at,
+            'is_published' => $request->has('is_published') ? (bool)$request->is_published : $news->is_published,
         ]);
 
         \App\Models\ActivityLog::record('UPDATE', 'Berita & Informasi', 'Memperbarui berita: ' . $request->title);
         return back()->with('success', 'Berita berhasil diperbarui!');
+    }
+
+    public function newsToggleStatus($id)
+    {
+        $news = NewsItem::findOrFail($id);
+        $news->is_published = !$news->is_published;
+        $news->save();
+        $statusText = $news->is_published ? 'dipublikasikan (Aktif)' : 'dinonaktifkan (Draft)';
+        return back()->with('success', "Status berita '{$news->title}' berhasil {$statusText}!");
     }
 
     public function newsDestroy($id)
@@ -343,6 +405,7 @@ class AdminController extends Controller
             'title' => $request->title,
             'category' => $request->category,
             'file_url' => $fileUrl ?: '#',
+            'is_published' => $request->has('is_published') ? (bool)$request->is_published : true,
         ]);
 
         \App\Models\ActivityLog::record('CREATE', 'Dokumen Kinerja', 'Menambahkan dokumen PDF: ' . $request->title);
@@ -363,6 +426,7 @@ class AdminController extends Controller
         $fileUrl = $request->file_url ?: $doc->file_url;
 
         if ($request->hasFile('pdf_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($doc->file_url);
             $file = $request->file('pdf_file');
             $filename = 'dokumen_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/documents');
@@ -377,10 +441,20 @@ class AdminController extends Controller
             'title' => $request->title,
             'category' => $request->category,
             'file_url' => $fileUrl,
+            'is_published' => $request->has('is_published') ? (bool)$request->is_published : $doc->is_published,
         ]);
 
         \App\Models\ActivityLog::record('UPDATE', 'Dokumen Kinerja', 'Memperbarui dokumen PDF: ' . $request->title);
         return back()->with('success', 'Dokumen PDF Kinerja berhasil diperbarui!');
+    }
+
+    public function documentToggleStatus($id)
+    {
+        $doc = PublicDocument::findOrFail($id);
+        $doc->is_published = !$doc->is_published;
+        $doc->save();
+        $statusText = $doc->is_published ? 'dipublikasikan' : 'dinonaktifkan (Draft)';
+        return back()->with('success', "Status dokumen '{$doc->title}' berhasil {$statusText}!");
     }
 
     public function documentDestroy($id)
@@ -444,6 +518,7 @@ class AdminController extends Controller
         $imagePath = $request->image ?: $page->image;
 
         if ($request->hasFile('image_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($page->image);
             $file = $request->file('image_file');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/pages');
@@ -580,6 +655,7 @@ class AdminController extends Controller
 
         $imageUrl = $request->hasFile('image_file') ? null : ($request->image_url ?: $link->image_url);
         if ($request->hasFile('image_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($link->image_url);
             $file = $request->file('image_file');
             $filename = 'link_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/links');
@@ -802,31 +878,48 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'username' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'referral_code' => 'nullable|string|max:50',
             'password' => 'required|min:6',
             'role' => 'required|in:super_admin,anggota',
         ]);
         User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->username,
+            'phone' => $request->phone,
+            'referral_code' => $request->referral_code,
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
-        return back()->with('success', 'User berhasil ditambahkan!');
+        return back()->with('success', 'Pengguna baru berhasil ditambahkan!');
     }
 
     public function userUpdate(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'username' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'referral_code' => 'nullable|string|max:50',
+            'role' => 'required|in:super_admin,anggota',
+        ]);
         $data = [
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->username,
+            'phone' => $request->phone,
+            'referral_code' => $request->referral_code,
             'role' => $request->role,
         ];
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
         $user->update($data);
-        return back()->with('success', 'Data User berhasil diperbarui!');
+        return back()->with('success', 'Data Akun Pengguna berhasil diperbarui!');
     }
 
     public function userDestroy($id)
@@ -1149,6 +1242,7 @@ class AdminController extends Controller
 
         $photo = $request->photo ?: $member->photo;
         if ($request->hasFile('photo_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($member->photo);
             $file = $request->file('photo_file');
             $filename = 'pejabat_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/pejabat');
@@ -1201,26 +1295,60 @@ class AdminController extends Controller
 
     public function galleryStore(Request $request)
     {
-        $mimesRule = $request->type == 'video' ? 'mimes:mp4,mov,avi,webm' : 'mimes:jpg,jpeg,png';
+        $mimesRule = $request->type == 'video' ? 'mimes:mp4,mov,avi,webm' : 'mimes:jpg,jpeg,png,webp';
         $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:image,video',
             'youtube_url' => 'nullable|url',
             'file_upload' => "nullable|file|{$mimesRule}|max:20480",
+            'photos.*' => "nullable|file|mimes:jpg,jpeg,png,webp|max:20480",
         ], [
             'file_upload.mimes' => $request->type == 'image'
-                ? 'Hanya berkas foto/gambar berformat JPG dan PNG (.jpg, .jpeg, .png) yang diperbolehkan!'
+                ? 'Hanya berkas foto/gambar berformat JPG, PNG, WEBP (.jpg, .jpeg, .png, .webp) yang diperbolehkan!'
                 : 'Hanya berkas video berformat MP4/MOV/AVI yang diperbolehkan!'
         ]);
 
-        $filePath = $request->file_path;
+        $filePaths = [];
 
+        // Upload multiple photos for album
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $idx => $file) {
+                $filename = time() . '_' . $idx . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                $targetDir = public_path('uploads/gallery');
+                if (!file_exists($targetDir)) { mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $filePaths[] = '/uploads/gallery/' . $filename;
+            }
+        }
+
+        // Upload single file fallback
         if ($request->hasFile('file_upload')) {
             $file = $request->file('file_upload');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/gallery'), $filename);
-            $filePath = '/uploads/gallery/' . $filename;
+            $targetDir = public_path('uploads/gallery');
+            if (!file_exists($targetDir)) { mkdir($targetDir, 0777, true); }
+            $file->move($targetDir, $filename);
+            $filePaths[] = '/uploads/gallery/' . $filename;
         }
+
+        // Manual text URLs or JSON string
+        if ($request->filled('file_path')) {
+            $rawInput = trim($request->file_path);
+            $decodedInput = json_decode($rawInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedInput)) {
+                $filePaths = array_merge($filePaths, $decodedInput);
+            } else {
+                $urls = array_filter(array_map('trim', explode("\n", $rawInput)));
+                foreach ($urls as $u) {
+                    if (!empty($u)) {
+                        $filePaths[] = $u;
+                    }
+                }
+            }
+        }
+
+        $filePaths = array_values(array_unique(array_filter($filePaths)));
+        $finalFilePath = empty($filePaths) ? null : (count($filePaths) === 1 ? $filePaths[0] : json_encode($filePaths));
 
         $category = $request->custom_category ?: ($request->category ?: 'Dokumentasi Kegiatan');
 
@@ -1228,14 +1356,14 @@ class AdminController extends Controller
             'title' => $request->title,
             'type' => $request->type,
             'category' => $category,
-            'file_path' => $filePath,
+            'file_path' => $finalFilePath,
             'youtube_url' => $request->youtube_url,
             'caption' => $request->caption,
             'is_active' => true,
         ]);
 
-        $typeName = $request->type == 'video' ? 'Video YouTube' : 'Foto Galeri';
-        \App\Models\ActivityLog::record('CREATE', $request->type == 'video' ? 'Galeri Video' : 'Galeri Foto', 'Menambahkan ' . $typeName . ' baru: ' . $request->title);
+        $typeName = $request->type == 'video' ? 'Video YouTube' : 'Album Foto Galeri (' . count($filePaths) . ' Foto)';
+        \App\Models\ActivityLog::record('CREATE', $request->type == 'video' ? 'Galeri Video' : 'Galeri Album Foto', 'Menambahkan ' . $typeName . ' baru: ' . $request->title);
 
         return back()->with('success', "{$typeName} berhasil ditambahkan!");
     }
@@ -1244,28 +1372,61 @@ class AdminController extends Controller
     {
         $item = \App\Models\Gallery::findOrFail($id);
 
-        $mimesRule = $request->type == 'video' ? 'mimes:mp4,mov,avi,webm' : 'mimes:jpg,jpeg,png';
+        $mimesRule = $request->type == 'video' ? 'mimes:mp4,mov,avi,webm' : 'mimes:jpg,jpeg,png,webp';
         $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:image,video',
             'youtube_url' => 'nullable|url',
             'file_upload' => "nullable|file|{$mimesRule}|max:20480",
+            'photos.*' => "nullable|file|mimes:jpg,jpeg,png,webp|max:20480",
         ], [
             'file_upload.mimes' => $request->type == 'image'
-                ? 'Hanya berkas foto/gambar berformat JPG dan PNG (.jpg, .jpeg, .png) yang diperbolehkan!'
+                ? 'Hanya berkas foto/gambar berformat JPG, PNG, WEBP (.jpg, .jpeg, .png, .webp) yang diperbolehkan!'
                 : 'Hanya berkas video berformat MP4/MOV/AVI yang diperbolehkan!'
         ]);
 
-        $filePath = $item->file_path;
+        if ($request->has('replace_photos')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($item->file_path);
+            $existingPaths = [];
+        } else {
+            $existingPaths = $item->images;
+        }
+
+        // Upload multiple new photos to album
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $idx => $file) {
+                $filename = time() . '_' . $idx . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                $targetDir = public_path('uploads/gallery');
+                if (!file_exists($targetDir)) { mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $existingPaths[] = '/uploads/gallery/' . $filename;
+            }
+        }
 
         if ($request->hasFile('file_upload')) {
             $file = $request->file('file_upload');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/gallery'), $filename);
-            $filePath = '/uploads/gallery/' . $filename;
-        } elseif ($request->has('file_path') && !empty($request->file_path)) {
-            $filePath = $request->file_path;
+            $targetDir = public_path('uploads/gallery');
+            if (!file_exists($targetDir)) { mkdir($targetDir, 0777, true); }
+            $file->move($targetDir, $filename);
+            $existingPaths[] = '/uploads/gallery/' . $filename;
         }
+
+        if ($request->filled('file_path')) {
+            $rawInput = trim($request->file_path);
+            $decodedInput = json_decode($rawInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedInput)) {
+                $existingPaths = array_merge($existingPaths, $decodedInput);
+            } else {
+                $urls = array_filter(array_map('trim', explode("\n", $rawInput)));
+                if (!empty($urls)) {
+                    $existingPaths = array_merge($existingPaths, $urls);
+                }
+            }
+        }
+
+        $existingPaths = array_values(array_unique(array_filter($existingPaths)));
+        $finalFilePath = empty($existingPaths) ? $item->file_path : (count($existingPaths) === 1 ? $existingPaths[0] : json_encode($existingPaths));
 
         $category = $request->custom_category ?: ($request->category ?: ($item->category ?: 'Dokumentasi Kegiatan'));
 
@@ -1273,7 +1434,7 @@ class AdminController extends Controller
             'title' => $request->title,
             'type' => $request->type,
             'category' => $category,
-            'file_path' => $filePath,
+            'file_path' => $finalFilePath,
             'youtube_url' => $request->youtube_url,
             'caption' => $request->caption,
         ]);
@@ -1392,9 +1553,10 @@ class AdminController extends Controller
     // --- 18. KODE QR & SKM CRUD ---
     public function qrCode()
     {
-        $qrCodeLabel = SiteSetting::get('qr_code_label', 'Scan QR Portal Pelayanan & Survei SKM');
+        $qrCodeLabel = SiteSetting::get('qr_code_label', 'Scan QR Portal Pelayanan & Hasil SKM');
         $qrCodeImage = SiteSetting::get('qr_code_image', '');
-        return view('admin.qr_code', compact('qrCodeLabel', 'qrCodeImage'));
+        $skmImage = SiteSetting::get('skm_image', '/uploads/settings/skm_poster.svg');
+        return view('admin.qr_code', compact('qrCodeLabel', 'qrCodeImage', 'skmImage'));
     }
 
     public function qrCodeUpdate(Request $request)
@@ -1405,6 +1567,9 @@ class AdminController extends Controller
         if ($request->filled('qr_code_image')) {
             SiteSetting::set('qr_code_image', $request->qr_code_image);
         }
+        if ($request->filled('skm_image')) {
+            SiteSetting::set('skm_image', $request->skm_image);
+        }
         if ($request->hasFile('qr_file')) {
             $file = $request->file('qr_file');
             $filename = 'qr_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
@@ -1413,9 +1578,17 @@ class AdminController extends Controller
             $file->move($targetDir, $filename);
             SiteSetting::set('qr_code_image', '/uploads/settings/' . $filename);
         }
-        \App\Models\ActivityLog::record('UPDATE', 'Kode QR & SKM', 'Memperbarui Label & Foto Kode QR Footer & SKM.');
+        if ($request->hasFile('skm_file')) {
+            $file = $request->file('skm_file');
+            $filename = 'skm_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $targetDir = public_path('uploads/settings');
+            if (!file_exists($targetDir)) { mkdir($targetDir, 0777, true); }
+            $file->move($targetDir, $filename);
+            SiteSetting::set('skm_image', '/uploads/settings/' . $filename);
+        }
+        \App\Models\ActivityLog::record('UPDATE', 'Kode QR & Hasil SKM', 'Memperbarui Foto Poster Hasil SKM & Kode QR Footer.');
         \Illuminate\Support\Facades\Cache::flush();
-        return back()->with('success', 'Label & Gambar Kode QR berhasil diperbarui!');
+        return back()->with('success', 'Foto Poster Hasil SKM & Kode QR Footer berhasil diperbarui!');
     }
 
     // --- 19. LAYANAN PUBLIK CRUD ---
@@ -1471,7 +1644,7 @@ class AdminController extends Controller
             'cost' => $request->cost ?: 'Gratis (Rp 0)',
             'location' => $request->location ?: 'Loket MPP Kraksaan',
             'external_url' => $externalUrl,
-            'is_active' => true,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : true,
         ]);
 
         \App\Models\ActivityLog::record('CREATE', 'Layanan Publik', 'Menambahkan layanan publik baru: ' . $request->title);
@@ -1503,6 +1676,7 @@ class AdminController extends Controller
 
         $externalUrl = $request->hasFile('pdf_file') ? null : ($request->external_url ?: $service->external_url);
         if ($request->hasFile('pdf_file')) {
+            \App\Traits\DeletesUploadFiles::deleteUploadFile($service->external_url);
             $file = $request->file('pdf_file');
             $filename = 'sop_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $targetDir = public_path('uploads/services');
@@ -1525,10 +1699,20 @@ class AdminController extends Controller
             'cost' => $request->cost ?: 'Gratis (Rp 0)',
             'location' => $request->location ?: 'Loket MPP Kraksaan',
             'external_url' => $externalUrl,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : $service->is_active,
         ]);
 
         \App\Models\ActivityLog::record('UPDATE', 'Layanan Publik', 'Memperbarui layanan publik: ' . $request->title);
         return back()->with('success', 'Layanan Publik berhasil diperbarui!');
+    }
+
+    public function serviceToggleStatus($id)
+    {
+        $service = \App\Models\Service::findOrFail($id);
+        $service->is_active = !$service->is_active;
+        $service->save();
+        $statusText = $service->is_active ? 'diaktifkan (PUBLISHED)' : 'dinonaktifkan (DRAFT)';
+        return back()->with('success', "Status layanan '{$service->title}' berhasil {$statusText}!");
     }
 
     public function serviceDestroy($id)
@@ -1651,7 +1835,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:layanan,dokumen,berita,umkm,umum',
+            'type' => 'required|in:layanan,dokumen,berita,galeri,umkm,umum',
         ]);
 
         $catName = mb_strtoupper(trim($request->name));
@@ -1671,6 +1855,25 @@ class AdminController extends Controller
             'success' => true,
             'message' => 'Master Kategori berhasil ditambahkan!',
             'category' => $cat->name
+        ]);
+    }
+
+    public function categoryQuickDestroy(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $catName = mb_strtoupper(trim($request->name));
+
+        \App\Models\MasterCategory::where('name', $catName)->delete();
+
+        \App\Models\ActivityLog::record('DELETE', 'Master Kategori', 'Menghapus Master Kategori Cepat: ' . $catName);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Master Kategori berhasil dihapus!',
+            'category' => $catName
         ]);
     }
 }

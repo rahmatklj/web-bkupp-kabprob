@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\DeletesUploadFiles;
 
 class Service extends Model
 {
-    use HasFactory;
+    use HasFactory, DeletesUploadFiles;
 
     protected $fillable = [
         'title',
@@ -27,4 +28,12 @@ class Service extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::deleting(function ($service) {
+            self::deleteUploadFile($service->external_url);
+        });
+    }
 }
+

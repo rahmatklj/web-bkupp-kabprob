@@ -3,6 +3,40 @@
 @section('page_title', 'Kelola Informasi Alamat & Kontak Resmi')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#address_editor',
+            height: 200,
+            menubar: 'file edit view insert format table help',
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+            toolbar_mode: 'wrap',
+            content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.7; color: #1e293b; padding: 10px; } p { margin-bottom: 0.75rem; }',
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                editor.on('change keyup NodeChange', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+
+function syncContactTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('address_editor')) {
+        tinymce.get('address_editor').save();
+    }
+}
+</script>
+
 <div class="space-y-6 max-w-4xl mx-auto"
      x-data="{ 
          searchQuery: '{{ old('google_map_search', $settings['google_map_search'] ?? 'Kantor Bupati Probolinggo') }}',
@@ -73,7 +107,7 @@
 
     <!-- Form Setting Alamat & Kontak -->
     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
-        <form action="{{ route('admin.contact-info.update') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.contact-info.update') }}" method="POST" @submit="syncContactTinyMCE()" class="space-y-6">
             @csrf
             
             <div class="space-y-4">
@@ -83,8 +117,11 @@
 
                 <!-- Alamat Kantor Lengkap -->
                 <div class="space-y-1.5">
-                    <label class="block font-bold text-xs text-slate-700">Alamat Kantor Lengkap <span class="text-rose-500">*</span></label>
-                    <textarea name="address" rows="3" required
+                    <label class="block font-bold text-xs text-slate-700 flex items-center justify-between">
+                        <span>Alamat Kantor Lengkap <span class="text-rose-500">*</span></span>
+                        <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="address_editor" name="address" rows="3" required
                               class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none text-xs text-slate-800 font-medium leading-relaxed"
                               placeholder="Masukkan Alamat Kantor Lengkap...">{{ old('address', $settings['address'] ?? '') }}</textarea>
                     <p class="text-[11px] text-slate-400">Alamat fisik kantor yang akan ditampilkan pada footer website publik.</p>

@@ -3,6 +3,40 @@
 @section('page_title', 'Pengaturan Website & Identitas Instansi')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#site_desc_editor',
+            height: 200,
+            menubar: 'file edit view insert format table help',
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+            toolbar_mode: 'wrap',
+            content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.7; color: #1e293b; padding: 10px; } p { margin-bottom: 0.75rem; }',
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                editor.on('change keyup NodeChange', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+
+function syncSettingsTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('site_desc_editor')) {
+        tinymce.get('site_desc_editor').save();
+    }
+}
+</script>
+
 <div class="max-w-4xl space-y-6" x-data="{
     brandingErrorMsg: null,
     validatePdfAndImageFile(e) {
@@ -13,7 +47,7 @@
             if (!['jpg', 'jpeg', 'png', 'webp', 'svg', 'pdf'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto (JPG, PNG, WEBP, SVG) atau dokumen PDF (.pdf).';
                 this.brandingErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'Gambar atau PDF');
                 e.target.value = '';
             }
         }
@@ -32,7 +66,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6 text-xs">
+    <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" @submit="syncSettingsTinyMCE()" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6 text-xs">
         @csrf
 
         <!-- Site Title & Description -->
@@ -58,8 +92,11 @@
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Deskripsi Singkat Footer</label>
-                <textarea name="site_description" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ $settings['site_description'] ?? '' }}</textarea>
+                <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Deskripsi Singkat Footer</span>
+                    <span class="text-[9px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                </label>
+                <textarea id="site_desc_editor" name="site_description" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ $settings['site_description'] ?? '' }}</textarea>
             </div>
         </div>
 
@@ -69,8 +106,8 @@
                 <i class="fas fa-image"></i> 2. Gambar Logo & Branding (Bisa Upload PDF & Foto JPG/PNG/WEBP/SVG)
             </h4>
 
-            <!-- 1. Logo Topbar Frontend & Logo Footer Backend -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- 1. Logo Topbar Frontend -->
+            <div class="grid grid-cols-1 gap-5">
                 <!-- Logo Topbar Frontend -->
                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
                     <label class="block font-extrabold text-slate-800 text-xs">
@@ -97,37 +134,6 @@
                                 </a>
                             @else
                                 <img src="{{ $settings['logo_frontend'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
-                            @endif
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Logo Footer Backend -->
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                    <label class="block font-extrabold text-slate-800 text-xs">
-                        <i class="fas fa-file-upload text-emerald-600 me-1"></i> Logo Footer Backend (PDF / Gambar)
-                    </label>
-                    
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Unggah File Logo / PDF</label>
-                        <input type="file" name="logo_backend_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.pdf,.jpg,.jpeg,.png,.webp,.svg" @change="validatePdfAndImageFile($event)"
-                               class="w-full px-3 py-1.5 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-400 me-1"></i> Atau Masukkan URL Logo Footer</label>
-                        <input type="text" name="logo_backend" value="{{ $settings['logo_backend'] ?? '' }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono text-[11px]">
-                    </div>
-
-                    @if(!empty($settings['logo_backend']))
-                        <div class="pt-1 flex items-center gap-2">
-                            <span class="text-[10px] text-slate-400 font-bold">Preview:</span>
-                            @if(str_contains(strtolower($settings['logo_backend']), '.pdf'))
-                                <a href="{{ $settings['logo_backend'] }}" target="_blank" class="px-2 py-0.5 bg-rose-100 text-rose-800 font-extrabold rounded text-[10px] flex items-center gap-1">
-                                    <i class="fas fa-file-pdf"></i> Lihat PDF
-                                </a>
-                            @else
-                                <img src="{{ $settings['logo_backend'] }}" class="h-8 max-w-[120px] object-contain border rounded p-0.5 bg-white">
                             @endif
                         </div>
                     @endif

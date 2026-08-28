@@ -12,9 +12,9 @@
                     <div x-data="{ clicked: false }" 
                          @click="clicked = true; setTimeout(() => clicked = false, 2500)" 
                          class="flex items-center gap-1.5 sm:gap-3 cursor-pointer group select-none">
-                        <div class="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-white p-0.5 sm:p-1 border border-slate-200 shadow-md flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-black border border-slate-700/80 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
                             <img src="{{ $settings['logo_frontend'] ?? 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lambang_Kabupaten_Probolinggo.jpg/440px-Lambang_Kabupaten_Probolinggo.jpg' }}" 
-                                 alt="Logo DKUPP" class="w-full h-full object-contain">
+                                 alt="Logo DKUPP" class="w-full h-full object-cover rounded-full scale-125">
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="font-extrabold text-white text-[10px] sm:text-lg tracking-tight leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1">
@@ -78,7 +78,7 @@
             </div>
 
             <!-- KARTU 2: SCAN KODE QR (TENGAH - 1 COL MOBILE / 3 COLS DESKTOP) -->
-            <div class="col-span-1 lg:col-span-3 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-7 shadow-xl flex flex-col items-center justify-between text-center space-y-2 sm:space-y-2.5">
+            <div id="footer-qr-code" class="col-span-1 lg:col-span-3 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-7 shadow-xl flex flex-col items-center justify-between text-center space-y-2 sm:space-y-2.5 scroll-mt-24">
                 <div x-data="{ clicked: false }" 
                      @click="clicked = true; setTimeout(() => clicked = false, 2500)" 
                      class="cursor-pointer group select-none w-full">

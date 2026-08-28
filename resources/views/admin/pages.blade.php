@@ -3,6 +3,45 @@
 @section('page_title', 'CRUD Halaman Profil & Layanan')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+function initPageTinyMCE(content = '') {
+    if (typeof tinymce === 'undefined') return;
+    if (tinymce.get('page_content_editor')) {
+        tinymce.get('page_content_editor').destroy();
+    }
+    tinymce.init({
+        selector: '#page_content_editor',
+        height: 350,
+        menubar: 'file edit view insert format table help',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code fullscreen',
+        toolbar_mode: 'wrap',
+        content_style: 'body { font-family: sans-serif; font-size: 14px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 1rem; }',
+        branding: false,
+        promotion: false,
+        setup: function (editor) {
+            editor.on('init', function () {
+                editor.setContent(content || '');
+            });
+            editor.on('change keyup NodeChange', function () {
+                editor.save();
+            });
+        }
+    });
+}
+
+function syncPageTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('page_content_editor')) {
+        tinymce.get('page_content_editor').save();
+    }
+}
+</script>
+
 <div class="space-y-6" x-data="{ 
     showModal: false, 
     editMode: false, 
@@ -16,7 +55,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -40,7 +79,7 @@
             <h3 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">Daftar Halaman Profil, Layanan, & Konten Publik</h3>
             <p class="text-xs text-slate-500 mt-0.5">Kelola konten statis seperti Struktur Organisasi, Visi Misi, Tugas & Fungsi, Peta Bencana, dll.</p>
         </div>
-        <button @click="showModal = true; editMode = false; currentPage = {}" 
+        <button @click="showModal = true; editMode = false; currentPage = {}; setTimeout(() => initPageTinyMCE(''), 100)" 
                 class="w-full sm:w-auto px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all">
             <i class="fas fa-plus"></i> Tambah Halaman Baru
         </button>
@@ -77,7 +116,7 @@
                             </form>
                         </td>
                         <td class="px-3 sm:px-6 py-3.5 text-right whitespace-nowrap space-x-1">
-                            <button @click="showModal = true; editMode = true; currentPage = {{ json_encode($page) }}" 
+                            <button @click="showModal = true; editMode = true; currentPage = {{ json_encode($page) }}; setTimeout(() => initPageTinyMCE(currentPage.content), 100)" 
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
                             <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus halaman ini?')">
                                 @csrf
@@ -93,13 +132,13 @@
 
     <!-- Modal Form (Add / Edit Page) -->
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 class="font-bold text-slate-800 text-sm" x-text="editMode ? 'Edit Halaman Statis' : 'Tambah Halaman Baru'"></h3>
                 <button @click="showModal = false" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
 
-            <form :action="editMode ? '/admin/pages/' + currentPage.id : '{{ route('admin.pages.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+            <form :action="editMode ? '/admin/pages/' + currentPage.id : '{{ route('admin.pages.store') }}'" method="POST" enctype="multipart/form-data" @submit="syncPageTinyMCE()" class="space-y-4 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
@@ -152,8 +191,11 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Isi Konten Halaman (HTML / Teks)</label>
-                    <textarea name="content" rows="6" required x-model="currentPage.content" placeholder="<h2>Judul</h2><p>Isi penjelasan...</p>" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-mono text-xs"></textarea>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span>Isi Konten Halaman (HTML / Rich Text)</span>
+                        <span class="text-[9px] bg-orange-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                    </label>
+                    <textarea id="page_content_editor" name="content" rows="6" required x-model="currentPage.content" placeholder="<h2>Judul</h2><p>Isi penjelasan...</p>" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-mono text-xs"></textarea>
                 </div>
 
                 <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">

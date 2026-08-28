@@ -3,6 +3,40 @@
 @section('page_title', 'Kelola Link Website SP4N LAPOR!')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#sp4n_lapor_desc_editor',
+            height: 200,
+            menubar: 'file edit view insert format table help',
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+            toolbar_mode: 'wrap',
+            content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.7; color: #1e293b; padding: 10px; } p { margin-bottom: 0.75rem; }',
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                editor.on('change keyup NodeChange', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+
+function syncSP4NTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('sp4n_lapor_desc_editor')) {
+        tinymce.get('sp4n_lapor_desc_editor').save();
+    }
+}
+</script>
+
 <div class="space-y-6 max-w-4xl mx-auto">
     
     <!-- Header Card -->
@@ -27,7 +61,7 @@
 
     <!-- Main Settings Form Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <form action="{{ route('admin.sp4n-lapor.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+        <form action="{{ route('admin.sp4n-lapor.update') }}" method="POST" enctype="multipart/form-data" @submit="syncSP4NTinyMCE()" class="space-y-5 text-xs">
             @csrf
 
             <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl space-y-2">
@@ -58,8 +92,11 @@
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Keterangan Singkat Portal Pengaduan</label>
-                <textarea name="lapor_sp4n_desc" rows="2" placeholder="Deskripsi singkat mengenai layanan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed">{{ $laporSp4nDesc }}</textarea>
+                <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Keterangan Singkat Portal Pengaduan</span>
+                    <span class="text-[9px] bg-rose-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                </label>
+                <textarea id="sp4n_lapor_desc_editor" name="lapor_sp4n_desc" rows="3" placeholder="Deskripsi singkat mengenai layanan pengaduan..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed">{{ $laporSp4nDesc }}</textarea>
             </div>
 
             <!-- Logo Section -->

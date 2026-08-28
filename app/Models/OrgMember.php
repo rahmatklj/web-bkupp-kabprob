@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\DeletesUploadFiles;
 
 class OrgMember extends Model
 {
-    use HasFactory;
+    use HasFactory, DeletesUploadFiles;
 
     protected $fillable = [
         'name',
@@ -24,6 +25,13 @@ class OrgMember extends Model
         'order' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function ($member) {
+            self::deleteUploadFile($member->photo);
+        });
+    }
+
     public function parent()
     {
         return $this->belongsTo(OrgMember::class, 'parent_id');
@@ -34,3 +42,4 @@ class OrgMember extends Model
         return $this->hasMany(OrgMember::class, 'parent_id')->orderBy('order', 'asc');
     }
 }
+

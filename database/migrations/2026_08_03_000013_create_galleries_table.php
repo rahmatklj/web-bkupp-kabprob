@@ -14,7 +14,7 @@ return new class extends Migration
                 $table->string('title');
                 $table->string('type')->default('image'); // 'image' or 'video'
                 $table->string('category')->default('Dokumentasi Kegiatan');
-                $table->string('file_path')->nullable();
+                $table->longText('file_path')->nullable();
                 $table->string('youtube_url')->nullable();
                 $table->text('caption')->nullable();
                 $table->boolean('is_active')->default(true);

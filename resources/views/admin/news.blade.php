@@ -3,6 +3,46 @@
 @section('page_title', 'CRUD Berita & Informasi DKUPP')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+function initNewsTinyMCE(contentStr) {
+    if (typeof tinymce === 'undefined') return;
+    if (tinymce.get('news_editor')) {
+        tinymce.get('news_editor').destroy();
+    }
+    tinymce.init({
+        selector: '#news_editor',
+        height: 380,
+        menubar: 'file edit view insert format table help',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code fullscreen',
+        toolbar_mode: 'wrap',
+        content_style: 'body { font-family: sans-serif; font-size: 14px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 1.25rem; }',
+        branding: false,
+        promotion: false,
+        setup: function (editor) {
+            editor.on('init', function () {
+                editor.setContent(contentStr || '');
+            });
+            editor.on('change keyup NodeChange', function () {
+                editor.save();
+            });
+        }
+    });
+}
+
+function syncNewsContent() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('news_editor')) {
+        tinymce.get('news_editor').save();
+    }
+}
+</script>
+
 <div class="space-y-6" x-data="{ 
     showModal: false, 
     editMode: false, 
@@ -12,6 +52,24 @@
     newMasterInput: '',
     showAddMaster: false,
     imageErrorMsg: null,
+    openAddModal() {
+        this.showModal = true;
+        this.editMode = false;
+        this.isCustomCategory = false;
+        this.currentNews = { category: '{{ $categories[0] ?? 'Berita Utama' }}', published_at: '{{ date('Y-m-d') }}', content: '', is_published: 1 };
+        setTimeout(() => {
+            initNewsTinyMCE('');
+        }, 50);
+    },
+    openEditModal(news) {
+        this.showModal = true;
+        this.editMode = true;
+        this.isCustomCategory = false;
+        this.currentNews = Object.assign({}, news);
+        setTimeout(() => {
+            initNewsTinyMCE(news.content || '');
+        }, 50);
+    },
     async submitQuickMaster(type) {
         if (!this.newMasterInput.trim()) return;
         try {
@@ -36,6 +94,26 @@
             console.error(e);
         }
     },
+    async deleteQuickMaster(catName, typeName) {
+        if (!confirm(`Hapus master kategori '${catName}'?`)) return;
+        try {
+            const res = await fetch('{{ route('admin.categories.quick-destroy') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ name: catName, type: typeName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.categoriesList = this.categoriesList.filter(c => c !== catName);
+                if (this.currentNews && this.currentNews.category === catName) this.currentNews.category = '';
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    },
     validateImageFile(e) {
         this.imageErrorMsg = null;
         const file = e.target.files[0];
@@ -44,7 +122,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -59,7 +137,7 @@
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">Kelola artikel berita publik yang tampil di homepage dan portal berita resmi DKUPP Kabupaten Probolinggo.</p>
         </div>
-        <button @click="showModal = true; editMode = false; isCustomCategory = false; currentNews = { category: '{{ $categories[0] ?? 'Berita Utama' }}', published_at: '{{ date('Y-m-d') }}' }" 
+        <button @click="openAddModal()" 
                 class="w-full sm:w-auto px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all">
             <i class="fas fa-plus"></i> Publish Berita Baru
         </button>
@@ -101,6 +179,7 @@
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Thumbnail</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Judul Berita</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Kategori</th>
+                    <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Status</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Tanggal Publish</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Views</th>
                     <th class="px-3 sm:px-6 py-3.5 text-right whitespace-nowrap">Aksi</th>
@@ -120,6 +199,16 @@
                                 {{ $news->category }}
                             </span>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <form action="{{ route('admin.news.toggle', $news->id) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit" title="Klik untuk ubah status publikasi (Aktif / Draft)" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold transition-all duration-200 cursor-pointer hover:scale-105 {{ $news->is_published ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $news->is_published ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
+                                    {{ $news->is_published ? 'PUBLISHED' : 'DRAFT (OFF)' }}
+                                </button>
+                            </form>
+                        </td>
                         <td class="px-6 py-4 text-slate-500 font-medium">
                             {{ optional($news->published_at)->format('d M Y') }}
                         </td>
@@ -127,8 +216,8 @@
                             {{ $news->views }}
                         </td>
                         <td class="px-6 py-4 text-right space-x-1">
-                            <button @click="showModal = true; editMode = true; isCustomCategory = false; currentNews = {{ json_encode($news) }}" 
-                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
+                            <button @click="openEditModal({{ json_encode($news) }})" 
+                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit Artikel Berita"><i class="fas fa-edit"></i></button>
                             <form action="{{ route('admin.news.destroy', $news->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus berita ini?')">
                                 @csrf
                                 @method('DELETE')
@@ -144,15 +233,15 @@
         </div>
     </div>
 
-    <!-- Modal Form (Add / Edit News) -->
-    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
+    <!-- Modal Form (Add / Edit News with TinyMCE) -->
+    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl space-y-4 my-auto">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2" x-text="editMode ? 'Edit Berita & Artikel' : 'Publish Berita Baru'"></h3>
-                <button @click="showModal = false" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+                <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2" x-text="editMode ? 'Edit Berita & Artikel' : 'Publish Berita Baru'"></h3>
+                <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times"></i></button>
             </div>
 
-            <form :action="editMode ? '/admin/news/' + currentNews.id : '{{ route('admin.news.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+            <form :action="editMode ? '/admin/news/' + currentNews.id : '{{ route('admin.news.store') }}'" method="POST" enctype="multipart/form-data" @submit="syncNewsContent()" class="space-y-4 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
@@ -164,12 +253,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Kategori Berita (Bisa Diketik & Pilih Master) -->
+                    <!-- Kategori Berita Minimalis & Responsif -->
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                            <span><i class="fas fa-tags text-orange-600 me-1"></i> Kategori Berita <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-orange-700 font-extrabold uppercase bg-orange-100/70 px-2 py-0.5 rounded-md">Bisa Diketik & Pilih Master</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <i class="fas fa-tags text-orange-600"></i> Kategori Berita <span class="text-rose-500">*</span>
+                            </label>
+                            <button type="button" @click="showAddMaster = !showAddMaster" 
+                                    class="px-2.5 py-1 text-[10px] rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 font-extrabold transition-all border border-orange-200 flex items-center gap-1 cursor-pointer" 
+                                    title="Tambah / Kelola Kategori Baru">
+                                <i class="fas fa-plus text-[9px]"></i> Manajemen Kategori
+                            </button>
+                        </div>
                         
                         <div class="space-y-2">
                             <!-- Direct Editable Input Field with Master Datalist Autocomplete -->
@@ -179,7 +274,7 @@
                                        required 
                                        list="master_news_categories"
                                        x-model="currentNews.category" 
-                                       placeholder="Pilih atau ketik kategori (misal: Berita Utama, Pengumuman...)" 
+                                       placeholder="Pilih atau ketik kategori berita..." 
                                        class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-bold text-slate-900 text-xs bg-white shadow-2xs">
                                 
                                 <datalist id="master_news_categories">
@@ -189,51 +284,62 @@
                                 </datalist>
                             </div>
 
-                            <!-- Quick Clickable Master Category Pills with + Tambah Master Inline -->
-                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                <span class="text-[10px] text-slate-400 font-bold self-center me-1">Master:</span>
-                                <template x-for="quickCat in categoriesList" :key="quickCat">
-                                    <button type="button" @click="currentNews.category = quickCat"
-                                            :class="currentNews.category === quickCat ? 'bg-orange-600 text-white font-extrabold shadow-2xs border-orange-600' : 'bg-slate-100 text-slate-700 hover:bg-orange-100 hover:text-orange-800 border-slate-200'"
-                                            class="px-2.5 py-1 text-[10px] rounded-lg border transition-all cursor-pointer">
-                                        <span x-text="quickCat"></span>
+                            <!-- Inline Add & Manage Master Input Box -->
+                            <div x-show="showAddMaster" x-cloak class="mt-2 p-3 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2.5">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" 
+                                           x-model="newMasterInput" 
+                                           @keydown.enter.prevent="submitQuickMaster('berita')" 
+                                           placeholder="Ketik nama kategori baru..." 
+                                           class="w-full px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-orange-500 focus:outline-none bg-white">
+                                    <button type="button" 
+                                            @click="submitQuickMaster('berita')" 
+                                            class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs cursor-pointer">
+                                        + Simpan
                                     </button>
-                                </template>
+                                    <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1 cursor-pointer">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
 
-                                <!-- Quick Add Master Button -->
-                                <button type="button" @click="showAddMaster = !showAddMaster" 
-                                        class="px-2 py-1 text-[10px] rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer" 
-                                        title="Tambah Master Kategori Baru secara Manual">
-                                    <i class="fas fa-plus text-[9px]"></i> Tambah Master
-                                </button>
+                                <!-- List of Master Categories with Delete Button -->
+                                <div class="pt-2 border-t border-orange-200/70 space-y-1">
+                                    <span class="text-[10px] text-slate-500 font-bold block">Kategori Tersimpan (Klik untuk pilih / Hapus jika tidak diperlukan):</span>
+                                    <div class="flex flex-wrap items-center gap-1.5 max-h-32 overflow-y-auto pt-0.5">
+                                        <template x-for="cat in categoriesList" :key="cat">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white border border-orange-200 text-slate-800 shadow-2xs group hover:border-orange-400 transition-all">
+                                                <span @click="currentNews.category = cat" class="cursor-pointer hover:text-orange-600" x-text="cat"></span>
+                                                <button type="button" @click.stop="deleteQuickMaster(cat, 'berita')" class="text-slate-300 hover:text-rose-600 transition-colors ml-0.5 cursor-pointer" title="Hapus Kategori Ini">
+                                                    <i class="fas fa-times-circle text-[11px]"></i>
+                                                </button>
+                                            </span>
+                                        </template>
+                                        <template x-if="!categoriesList || categoriesList.length === 0">
+                                            <span class="text-[10px] text-slate-400 italic">Belum ada kategori tersimpan.</span>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- Inline Add Master Input Box -->
-                            <div x-show="showAddMaster" x-cloak class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                                <input type="text" 
-                                       x-model="newMasterInput" 
-                                       @keydown.enter.prevent="submitQuickMaster('berita')" 
-                                       placeholder="Ketik nama master kategori baru..." 
-                                       class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
-                                <button type="button" 
-                                        @click="submitQuickMaster('berita')" 
-                                        class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs">
-                                    Simpan
-                                </button>
-                                <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1">
-                                    <i class="fas fa-times text-xs"></i>
-                                </button>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Anda dapat mengetik secara bebas nama kategori baru atau mengklik pilihan master di atas.</p>
                         </div>
                     </div>
 
-                    <!-- Published Date -->
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">
-                            <i class="fas fa-calendar-alt text-orange-600 me-1"></i> Tanggal Publish
-                        </label>
-                        <input type="date" name="published_at" x-model="currentNews.published_at" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-medium">
+                    <!-- Published Date & Status -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">
+                                <i class="fas fa-calendar-alt text-orange-600 me-1"></i> Tanggal Publish
+                            </label>
+                            <input type="date" name="published_at" x-model="currentNews.published_at" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-medium text-xs">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">
+                                <i class="fas fa-eye text-orange-600 me-1"></i> Status Publikasi
+                            </label>
+                            <select name="is_published" x-model="currentNews.is_published" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none font-bold text-slate-800 text-xs">
+                                <option :value="1">PUBLISHED (Aktif / Tampil di Web)</option>
+                                <option :value="0">DRAFT (Nonaktif / Sembunyi)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -277,10 +383,14 @@
                     </template>
                 </div>
 
-                <!-- Content Textarea -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Isi Berita (Content) <span class="text-rose-500">*</span></label>
-                    <textarea name="content" rows="4" required x-model="currentNews.content" placeholder="Tuliskan berita lengkap..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none leading-relaxed text-slate-800"></textarea>
+                <!-- Content Textarea dengan TinyMCE Rich Text Editor -->
+                <div class="space-y-1.5">
+                    <label class="block font-extrabold text-slate-800 text-xs flex items-center justify-between">
+                        <span><i class="fas fa-pen-nib text-orange-600 me-1"></i> Isi Berita (Content Lengkap) <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] bg-orange-100 text-orange-800 font-extrabold px-2.5 py-0.5 rounded-md uppercase">✨ Rich Text Editor TinyMCE</span>
+                    </label>
+                    <textarea id="news_editor" name="content" rows="10" x-model="currentNews.content" placeholder="Tuliskan isi berita lengkap..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none leading-relaxed text-slate-800"></textarea>
+                    <p class="text-[10px] text-slate-400 font-medium">Gunakan editor TinyMCE di atas untuk memberikan format tulisan (Bold, Italic, Judul Sub-Bab, Tabel, Gambar, Daftar List, Link, dll).</p>
                 </div>
 
                 <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">

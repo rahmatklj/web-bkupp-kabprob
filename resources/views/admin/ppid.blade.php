@@ -3,6 +3,40 @@
 @section('page_title', 'Kelola Link Website PPID DKUPP')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#ppid_desc_editor',
+            height: 220,
+            menubar: 'file edit view insert format table help',
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code fullscreen',
+            toolbar_mode: 'wrap',
+            content_style: 'body { font-family: sans-serif; font-size: 13px; line-height: 1.8; color: #1e293b; padding: 10px; } p { margin-bottom: 0.75rem; }',
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                editor.on('change keyup NodeChange', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+
+function syncPPIDTinyMCE() {
+    if (typeof tinymce !== 'undefined' && tinymce.get('ppid_desc_editor')) {
+        tinymce.get('ppid_desc_editor').save();
+    }
+}
+</script>
+
 <div class="max-w-4xl space-y-6">
 
     <!-- Header Card -->
@@ -30,7 +64,7 @@
 
     <!-- Simple Form Link Web PPID -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <form action="{{ route('admin.ppid.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+        <form action="{{ route('admin.ppid.update') }}" method="POST" enctype="multipart/form-data" @submit="syncPPIDTinyMCE()" class="space-y-5 text-xs">
             @csrf
 
             <div class="space-y-1.5 p-4 bg-blue-50/70 border border-blue-200 rounded-2xl">
@@ -78,8 +112,11 @@
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Deskripsi Singkat Portal PPID</label>
-                <textarea name="ppid_desc" rows="2" placeholder="Penjelasan singkat mengenai layanan PPID..." 
+                <label class="font-bold text-slate-700 block mb-1 flex items-center justify-between">
+                    <span>Deskripsi Singkat Portal PPID</span>
+                    <span class="text-[9px] bg-blue-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">✨ TinyMCE Editor</span>
+                </label>
+                <textarea id="ppid_desc_editor" name="ppid_desc" rows="3" placeholder="Penjelasan singkat mengenai layanan PPID..." 
                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">{{ $ppidDesc }}</textarea>
             </div>
 

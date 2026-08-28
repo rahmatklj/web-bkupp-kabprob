@@ -13,7 +13,7 @@
             if (!['jpg', 'jpeg', 'png'].includes(ext)) {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima foto berformat JPG & PNG (.jpg, .jpeg, .png).';
                 this.imageErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'JPG atau PNG');
                 e.target.value = '';
             }
         }
@@ -27,8 +27,8 @@
                 <i class="fas fa-qrcode"></i>
             </div>
             <div>
-                <h3 class="font-extrabold text-slate-900 text-lg">Kelola Kode QR & Survei SKM</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Kelola gambar Kode QR footer dan tautan survei kepuasan masyarakat (SKM).</p>
+                <h3 class="font-extrabold text-slate-900 text-lg">Kelola Kode QR & Hasil SKM</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Kelola gambar Kode QR footer dan poster Hasil SKM.</p>
             </div>
         </div>
         <a href="{{ route('home') }}" target="_blank" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shrink-0 transition-colors flex items-center gap-1.5">
@@ -53,20 +53,45 @@
                 <label class="font-extrabold text-slate-800 block text-xs">
                     <i class="fas fa-tag text-emerald-600 me-1"></i> Label / Judul Kode QR Footer <span class="text-rose-500">*</span>
                 </label>
-                <input type="text" name="qr_code_label" value="{{ old('qr_code_label', $qrCodeLabel) }}" required placeholder="Contoh: Scan QR Portal Pelayanan & Survei SKM"
+                <input type="text" name="qr_code_label" value="{{ old('qr_code_label', $qrCodeLabel) }}" required placeholder="Contoh: Scan QR Portal Pelayanan & Hasil SKM"
                        class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-slate-800 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
             </div>
 
-            <!-- Upload File Kode QR & URL -->
+            <!-- Upload File Poster Hasil SKM -->
+            <div class="space-y-3 p-4 bg-blue-50/70 rounded-2xl border border-blue-200">
+                <label class="font-extrabold text-blue-900 block text-xs">
+                    <i class="fas fa-chart-bar text-blue-600 me-1"></i> File Foto / Poster Hasil SKM (Tampil di Sidebar Beranda) <span class="text-rose-500">*</span>
+                </label>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-blue-600 me-1"></i> Upload Foto Poster Hasil SKM (Dari HP / Komputer)</label>
+                        <input type="file" name="skm_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png,.svg" @change="validateImageFile($event)" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-link text-slate-500 me-1"></i> Atau Masukkan URL Gambar Poster Hasil SKM</label>
+                        <input type="text" name="skm_image" value="{{ old('skm_image', $skmImage ?? '') }}" placeholder="https://... atau /uploads/settings/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white">
+                    </div>
+                </div>
+
+                @if(!empty($skmImage))
+                    <div class="mt-2 p-3 bg-white rounded-xl border border-slate-200 inline-flex flex-col gap-2">
+                        <span class="text-[11px] font-bold text-slate-500">Preview Poster Hasil SKM Saat Ini (Tampil di Sidebar Beranda):</span>
+                        <img src="{{ $skmImage }}" alt="Poster Hasil SKM" class="h-44 w-auto object-contain rounded border border-slate-200 bg-slate-900 p-2">
+                    </div>
+                @endif
+            </div>
+
+            <!-- Upload File Kode QR & URL Footer -->
             <div class="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
                 <label class="font-extrabold text-slate-800 block text-xs">
-                    <i class="fas fa-qrcode text-emerald-600 me-1"></i> File Foto / Gambar Kode QR
+                    <i class="fas fa-qrcode text-emerald-600 me-1"></i> File Foto / Gambar Kode QR Footer
                 </label>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1"><i class="fas fa-upload text-emerald-600 me-1"></i> Upload File Foto Kode QR (Dari HP / Komputer)</label>
-                        <input type="file" name="qr_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" @change="validateImageFile($event)" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                        <input type="file" name="qr_file" accept="image/jpeg,image/png,.jpg,.jpeg,.png,.svg" @change="validateImageFile($event)" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
                         
                         <!-- PEMBERITAHUAN GAGAL UPLOAD NON-JPG/PNG -->
                         <template x-if="imageErrorMsg">
@@ -92,7 +117,7 @@
 
             <div class="pt-3 border-t border-slate-100 flex justify-end">
                 <button type="submit" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-extrabold text-xs shadow-md transition-all flex items-center gap-2">
-                    <i class="fas fa-save"></i> Simpan Kode QR & SKM
+                    <i class="fas fa-save"></i> Simpan Kode QR & Hasil SKM
                 </button>
             </div>
         </form>

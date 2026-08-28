@@ -1,6 +1,6 @@
 @extends('admin.layout')
 
-@section('page_title', 'CRUD Dokumen Kinerja (DOKUMEN)')
+@section('page_title', 'CRUD Dokumen Kinerja')
 
 @section('content')
 <div class="space-y-6" x-data="{ 
@@ -21,7 +21,7 @@
             if (ext !== 'pdf' && file.type !== 'application/pdf') {
                 const msg = '⚠️ GAGAL UPLOAD: Berkas yang Anda pilih berformat .' + ext.toUpperCase() + '! Sistem HANYA menerima berkas PDF (.pdf).';
                 this.pdfErrorMsg = msg;
-                alert(msg);
+                showUploadErrorSwal(msg, 'PDF (.pdf)');
                 e.target.value = '';
             }
         }
@@ -49,6 +49,26 @@
         } catch (e) {
             console.error(e);
         }
+    },
+    async deleteQuickMaster(catName, typeName) {
+        if (!confirm(`Hapus master kategori '${catName}'?`)) return;
+        try {
+            const res = await fetch('{{ route('admin.categories.quick-destroy') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ name: catName, type: typeName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.categoriesList = this.categoriesList.filter(c => c !== catName);
+                if (this.currentDoc && this.currentDoc.category === catName) this.currentDoc.category = '';
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
 }">
     
@@ -59,7 +79,7 @@
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">Kelola berkas PDF unduhan & baca online di bawah menu DOKUMEN (Perencanaan, Pengukuran, Pelaporan, Evaluasi, & Kategori Kustom)</p>
         </div>
-        <button @click="showModal = true; editMode = false; currentDoc = { category: 'Perencanaan Kinerja' }" 
+        <button @click="showModal = true; editMode = false; currentDoc = { category: 'Perencanaan Kinerja', is_published: 1 }" 
                 class="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all shrink-0">
             <i class="fas fa-file-upload"></i> Upload Dokumen PDF Baru
         </button>
@@ -100,6 +120,7 @@
                 <tr>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Judul Dokumen PDF</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Kategori</th>
+                    <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Status</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Baca / Unduh File</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Total Unduh</th>
                     <th class="px-3 sm:px-6 py-3.5 text-right whitespace-nowrap">Aksi</th>
@@ -118,6 +139,16 @@
                             <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
                                 {{ $doc->category }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <form action="{{ route('admin.documents.toggle', $doc->id) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit" title="Klik untuk ubah status publikasi (Aktif / Draft)" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold transition-all duration-200 cursor-pointer hover:scale-105 {{ $doc->is_published ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $doc->is_published ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
+                                    {{ $doc->is_published ? 'PUBLISHED' : 'DRAFT (OFF)' }}
+                                </button>
+                            </form>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
@@ -148,7 +179,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs">
+                        <td colspan="6" class="px-6 py-8 text-center text-slate-400 text-xs">
                             Belum ada dokumen PDF kinerja yang diunggah.
                         </td>
                     </tr>
@@ -184,12 +215,26 @@
                     <input type="text" name="title" required x-model="currentDoc.title" placeholder="Contoh: Rencana Strategis (RENSTRA) DKUPP 2024–2026" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-900">
                 </div>
 
-                <!-- Kategori Dokumen Kinerja (Bisa Diketik & Pilih Master) -->
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                        <span>Kategori Dokumen Kinerja <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-emerald-700 font-extrabold uppercase bg-emerald-100/70 px-2 py-0.5 rounded-md">Bisa Diketik & Pilih Master</span>
-                    </label>
+                    <label class="block font-bold text-slate-700 mb-1">Status Publikasi</label>
+                    <select name="is_published" x-model="currentDoc.is_published" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-800">
+                        <option :value="1">PUBLISHED (Aktif / Tampil di Web)</option>
+                        <option :value="0">DRAFT (Nonaktif / Sembunyi)</option>
+                    </select>
+                </div>
+
+                <!-- Kategori Dokumen Kinerja Minimalis & Responsif -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-folder text-emerald-600"></i> Kategori Dokumen Kinerja <span class="text-rose-500">*</span>
+                        </label>
+                        <button type="button" @click="showAddMaster = !showAddMaster" 
+                                class="px-2.5 py-1 text-[10px] rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-extrabold transition-all border border-emerald-300 flex items-center gap-1 cursor-pointer" 
+                                title="Tambah / Kelola Kategori Baru">
+                            <i class="fas fa-plus text-[9px]"></i> Manajemen Kategori
+                        </button>
+                    </div>
                     
                     <div class="space-y-2">
                         <!-- Direct Editable Input Field with Master Datalist Autocomplete -->
@@ -199,7 +244,7 @@
                                    required 
                                    list="master_doc_categories"
                                    x-model="currentDoc.category" 
-                                   placeholder="Pilih atau ketik kategori (misal: Perencanaan Kinerja, SAKIP...)" 
+                                   placeholder="Pilih atau ketik kategori dokumen..." 
                                    class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-900 text-xs bg-white shadow-2xs">
                             
                             <datalist id="master_doc_categories">
@@ -209,42 +254,42 @@
                             </datalist>
                         </div>
 
-                        <!-- Quick Clickable Master Category Pills with + Tambah Master Inline -->
-                        <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                            <span class="text-[10px] text-slate-400 font-bold self-center me-1">Master:</span>
-                            <template x-for="quickCat in categoriesList" :key="quickCat">
-                                <button type="button" @click="currentDoc.category = quickCat"
-                                        :class="currentDoc.category === quickCat ? 'bg-emerald-700 text-white font-extrabold shadow-2xs border-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800 border-slate-200'"
-                                        class="px-2.5 py-1 text-[10px] rounded-lg border transition-all cursor-pointer">
-                                    <span x-text="quickCat"></span>
+                        <!-- Inline Add & Manage Master Input Box -->
+                        <div x-show="showAddMaster" x-cloak class="mt-2 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" 
+                                       x-model="newMasterInput" 
+                                       @keydown.enter.prevent="submitQuickMaster('dokumen')" 
+                                       placeholder="Ketik nama kategori baru..." 
+                                       class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                                <button type="button" 
+                                        @click="submitQuickMaster('dokumen')" 
+                                        class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs cursor-pointer">
+                                    + Simpan
                                 </button>
-                            </template>
+                                <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1 cursor-pointer">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
 
-                            <!-- Quick Add Master Button -->
-                            <button type="button" @click="showAddMaster = !showAddMaster" 
-                                    class="px-2 py-1 text-[10px] rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer" 
-                                    title="Tambah Master Kategori Baru secara Manual">
-                                <i class="fas fa-plus text-[9px]"></i> Tambah Master
-                            </button>
+                            <!-- List of Master Categories with Delete Button -->
+                            <div class="pt-2 border-t border-emerald-200/70 space-y-1">
+                                <span class="text-[10px] text-slate-500 font-bold block">Kategori Tersimpan (Klik untuk pilih / Hapus jika tidak diperlukan):</span>
+                                <div class="flex flex-wrap items-center gap-1.5 max-h-32 overflow-y-auto pt-0.5">
+                                    <template x-for="cat in categoriesList" :key="cat">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white border border-emerald-200 text-slate-800 shadow-2xs group hover:border-emerald-400 transition-all">
+                                            <span @click="currentDoc.category = cat" class="cursor-pointer hover:text-emerald-700" x-text="cat"></span>
+                                            <button type="button" @click.stop="deleteQuickMaster(cat, 'dokumen')" class="text-slate-300 hover:text-rose-600 transition-colors ml-0.5 cursor-pointer" title="Hapus Kategori Ini">
+                                                <i class="fas fa-times-circle text-[11px]"></i>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <template x-if="!categoriesList || categoriesList.length === 0">
+                                        <span class="text-[10px] text-slate-400 italic">Belum ada kategori tersimpan.</span>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
-
-                        <!-- Inline Add Master Input Box -->
-                        <div x-show="showAddMaster" x-cloak class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                            <input type="text" 
-                                   x-model="newMasterInput" 
-                                   @keydown.enter.prevent="submitQuickMaster('dokumen')" 
-                                   placeholder="Ketik nama master kategori baru..." 
-                                   class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
-                            <button type="button" 
-                                    @click="submitQuickMaster('dokumen')" 
-                                    class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg whitespace-nowrap shadow-xs">
-                                Simpan
-                            </button>
-                            <button type="button" @click="showAddMaster = false" class="text-slate-400 hover:text-slate-600 px-1">
-                                <i class="fas fa-times text-xs"></i>
-                            </button>
-                        </div>
-                        <p class="text-[10px] text-slate-400">Anda dapat mengetik secara bebas nama kategori baru atau mengklik pilihan master di atas.</p>
                     </div>
                 </div>
 

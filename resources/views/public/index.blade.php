@@ -417,25 +417,28 @@
                     </div>
 
                     <!-- Right Sidebar -->
-                    <aside class="lg:col-span-4 w-full flex flex-col justify-start">
+                    <aside class="lg:col-span-4 w-full flex flex-col justify-start space-y-4 sm:space-y-5">
                         
-                        <!-- Maklumat Pelayanan (Full Width Horizontal Card on Mobile) -->
-                        <div x-data="{ showMaklumatModal: false }" class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between items-center text-center w-full space-y-3.5 sm:space-y-4">
-                            <div class="flex flex-col items-center text-center space-y-2 w-full">
-                                <div class="w-11 h-11 sm:w-13 sm:h-13 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-2xs shrink-0">
-                                    <i class="fas fa-file-signature"></i>
-                                </div>
-                                <div class="space-y-1">
-                                    <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">Maklumat Pelayanan</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-                                        Komitmen pelayanan publik sesuai standar secara profesional, transparan, dan bebas KKN.
-                                    </p>
+                        <!-- KARTU 1: Maklumat Pelayanan (Tampilkan Gambar Poster Maklumat Langsung) -->
+                        <div x-data="{ showMaklumatModal: false }" class="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between items-center text-center w-full space-y-2.5">
+                            <!-- Direct Image Display of Maklumat Poster -->
+                            <div class="w-full relative rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group cursor-pointer" @click="showMaklumatModal = true">
+                                <img src="{{ !empty($settings['maklumat_image']) ? $settings['maklumat_image'] : '/uploads/settings/maklumat_1787796518_maklumat-dkupp.jpeg' }}" 
+                                     alt="Maklumat Pelayanan" 
+                                     class="w-full h-44 sm:h-48 object-contain p-1 group-hover:scale-105 transition-transform duration-300">
+                                
+                                <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-2">
+                                    <span class="px-3 py-1.5 bg-emerald-600/90 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5">
+                                        <i class="fas fa-search-plus"></i> Perbesar Gambar Maklumat
+                                    </span>
                                 </div>
                             </div>
+
+                            <!-- Quick Action Button -->
                             <button @click="showMaklumatModal = true" 
-                                    class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 group">
-                                <span>Baca Maklumat Resmi</span>
-                                <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                                    class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer">
+                                <i class="fas fa-search-plus text-xs"></i>
+                                <span>Perbesar Maklumat Pelayanan</span>
                             </button>
 
                             <!-- Interactive Modal Popup Maklumat Pelayanan -->
@@ -462,9 +465,9 @@
                                     @endif
 
                                     <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
-                                        <p class="font-extrabold text-slate-800 text-xs sm:text-sm text-center leading-snug">
-                                            "{{ $settings['maklumat_text'] ?? 'DENGAN INI, KAMI MENYATAKAN SANGGUP MENYELENGGARAKAN PELAYANAN SESUAI STANDAR PELAYANAN YANG TELAH DITETAPKAN DAN APABILA TIDAK MENEPATI JANJI, KAMI SIAP MENERIMA SANKSI SESUAI PERATURAN PERUNDANG-UNDANGAN YANG BERLAKU.' }}"
-                                        </p>
+                                        <div class="prose max-w-none font-bold text-slate-800 text-xs sm:text-sm text-center leading-relaxed">
+                                            {!! $settings['maklumat_text'] ?? 'DENGAN INI, KAMI MENYATAKAN SANGGUP MENYELENGGARAKAN PELAYANAN SESUAI STANDAR PELAYANAN YANG TELAH DITETAPKAN DAN APABILA TIDAK MENEPATI JANJI, KAMI SIAP MENERIMA SANKSI SESUAI PERATURAN PERUNDANG-UNDANGAN YANG BERLAKU.' !!}
+                                        </div>
                                         <div class="pt-2 border-t border-slate-200 text-slate-500 space-y-0.5 text-center font-medium text-[11px]">
                                             <p>Kepala {{ $settings['agency_name'] ?? 'Dinas Koperasi, Usaha Mikro, Perdagangan dan Perindustrian' }}</p>
                                             <strong class="text-slate-900 block font-bold text-xs">{{ $settings['regency_name'] ?? 'Kabupaten Probolinggo' }}</strong>
@@ -480,6 +483,76 @@
                             </div>
                         </div>
 
+                        <!-- KARTU 2: Hasil SKM (Tampilkan Gambar Poster SKM Langsung) -->
+                        <div x-data="{ showSkmModal: false }" class="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between items-center text-center w-full space-y-2.5">
+                            <!-- Direct Image Display of SKM Poster -->
+                            <div class="w-full relative rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group cursor-pointer" @click="showSkmModal = true">
+                                <img src="{{ $settings['skm_image'] ?? '/uploads/settings/skm_poster.svg' }}" 
+                                     alt="Hasil SKM Pelayanan" 
+                                     class="w-full h-44 sm:h-48 object-contain p-1 group-hover:scale-105 transition-transform duration-300">
+                                
+                                <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-2">
+                                    <span class="px-3 py-1.5 bg-blue-600/90 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5">
+                                        <i class="fas fa-search-plus"></i> Perbesar Gambar Hasil SKM
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Quick Action Bar -->
+                            <div class="w-full flex items-center gap-2">
+                                <button @click="showSkmModal = true" 
+                                        class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer">
+                                    <i class="fas fa-search-plus text-xs"></i>
+                                    <span>Perbesar Hasil SKM</span>
+                                </button>
+                                <a href="#footer-qr-code" 
+                                   class="inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all shrink-0 cursor-pointer"
+                                   title="Ke Kode QR Footer">
+                                    <i class="fas fa-qrcode text-xs"></i>
+                                    <span class="hidden sm:inline">Ke QR Bawah</span>
+                                </a>
+                            </div>
+
+                            <!-- Interactive Modal Popup Hasil SKM & Kode QR -->
+                            <div x-show="showSkmModal" x-cloak class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                                <div @click.away="showSkmModal = false" class="bg-white rounded-3xl p-5 sm:p-7 max-w-2xl w-full space-y-4 shadow-2xl text-left border border-slate-100 relative max-h-[90vh] overflow-y-auto my-auto">
+                                    <button @click="showSkmModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors z-10">
+                                        <i class="fas fa-times text-base"></i>
+                                    </button>
+                                    
+                                    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                                        <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg shrink-0">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-extrabold text-slate-900 text-base">Poster Hasil SKM & Kode QR</h4>
+                                            <p class="text-[11px] text-blue-700 font-bold uppercase tracking-wider">DKUPP Kabupaten Probolinggo</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Poster SKM / Kode QR Image -->
+                                    <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-slate-900 flex justify-center p-2">
+                                        <img src="{{ $settings['skm_image'] ?? '/uploads/settings/skm_poster.svg' }}" alt="Hasil SKM Pelayanan" class="max-h-[60vh] w-auto object-contain rounded-xl">
+                                    </div>
+
+                                    <div class="space-y-2 text-xs text-slate-600 leading-relaxed bg-blue-50/60 p-4 rounded-2xl border border-blue-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                        <div>
+                                            <strong class="text-slate-900 block font-extrabold text-xs mb-0.5">Scan Kode QR / Klik Tombol Akses</strong>
+                                            <p class="text-[11px] text-slate-500">Berikan penilaian & masukan Anda terhadap standar pelayanan DKUPP Kabupaten Probolinggo.</p>
+                                        </div>
+                                        <a href="#footer-qr-code" @click="showSkmModal = false" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs whitespace-nowrap shadow-xs flex items-center gap-1.5 shrink-0">
+                                            <i class="fas fa-qrcode"></i> <span>Menuju Kode QR Bawah</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="pt-1 flex justify-end">
+                                        <button @click="showSkmModal = false" class="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow transition-colors">
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </aside>
                 </div>
             </div>
@@ -517,8 +590,24 @@
             </div>
         </section>
 
-        <!-- Unified Documentation Gallery (Galeri Foto & Video Minimalis & Responsif) -->
-        <section class="py-10 bg-white border-t border-slate-100" x-data="{ activePhoto: null, activeVideo: null }">
+        <section class="py-10 bg-white border-t border-slate-100" 
+                 x-data="{ 
+                     activePhoto: null, 
+                     activePhotoIdx: 0,
+                     activeVideo: null,
+                     openPhotoAlbum(album) {
+                         this.activePhoto = album;
+                         this.activePhotoIdx = 0;
+                     },
+                     nextPhoto() {
+                         if (!this.activePhoto || !this.activePhoto.images || !this.activePhoto.images.length) return;
+                         this.activePhotoIdx = (this.activePhotoIdx + 1) % this.activePhoto.images.length;
+                     },
+                     prevPhoto() {
+                         if (!this.activePhoto || !this.activePhoto.images || !this.activePhoto.images.length) return;
+                         this.activePhotoIdx = (this.activePhotoIdx - 1 + this.activePhoto.images.length) % this.activePhoto.images.length;
+                     }
+                 }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 
                 <!-- Section Header Banner with View All Link -->
@@ -562,12 +651,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                                 @foreach(collect($photoGalleries)->take(2) as $img)
                                     <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 group flex flex-col justify-between cursor-pointer hover:-translate-y-0.5"
-                                         @click="activePhoto = {{ json_encode(['title' => $img->title, 'caption' => $img->caption, 'file_path' => $img->file_path]) }}">
+                                         @click="openPhotoAlbum({{ json_encode(['title' => $img->title, 'category' => $img->category ?: 'Dokumentasi Kegiatan', 'caption' => $img->caption, 'images' => $img->images]) }})">
                                         <div class="aspect-[4/3] bg-slate-100 overflow-hidden relative">
-                                            <img src="{{ $img->file_path }}" alt="{{ $img->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            <img src="{{ $img->cover_image }}" alt="{{ $img->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            <span class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md z-10">
+                                                📸 {{ $img->photo_count }} Foto
+                                            </span>
                                             <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white p-1.5">
                                                 <span class="px-2 py-0.5 bg-emerald-600/90 rounded-md text-[9px] font-extrabold shadow-sm flex items-center gap-1">
-                                                    <i class="fas fa-search-plus"></i> Perbesar
+                                                    <i class="fas fa-search-plus"></i> Buka Album ({{ $img->photo_count }})
                                                 </span>
                                             </div>
                                         </div>
@@ -657,7 +749,7 @@
 
                 </div>
 
-                <!-- Photo Lightbox Modal Popup -->
+                <!-- Photo Lightbox Modal Popup (Album Viewer with All Photos) -->
                 <div x-show="activePhoto !== null" 
                      x-cloak 
                      x-transition:enter="transition ease-out duration-200"
@@ -672,30 +764,62 @@
                         <div class="p-4 sm:p-5 bg-slate-950 text-white flex items-center justify-between gap-4 border-b border-slate-800 shrink-0">
                             <div class="flex items-center gap-3 overflow-hidden">
                                 <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
-                                    <i class="fas fa-camera"></i>
+                                    <i class="fas fa-images"></i>
                                 </div>
                                 <div class="truncate">
-                                    <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block">Dokumentasi Foto Kegiatan</span>
+                                    <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                        <span>Album Dokumentasi</span>
+                                        <template x-if="activePhoto && activePhoto.images && activePhoto.images.length > 0">
+                                            <span class="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-bold border border-emerald-800" x-text="`Foto ${activePhotoIdx + 1} dari ${activePhoto.images.length}`"></span>
+                                        </template>
+                                    </span>
                                     <h3 class="font-extrabold text-xs sm:text-sm text-white truncate" x-text="activePhoto ? activePhoto.title : ''"></h3>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <a :href="activePhoto ? activePhoto.file_path : '#'" target="_blank" download class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
+                                <a :href="activePhoto && activePhoto.images ? activePhoto.images[activePhotoIdx] : '#'" target="_blank" download class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs">
                                     <i class="fas fa-download text-[10px]"></i> <span class="hidden sm:inline">Unduh Foto</span>
                                 </a>
-                                <button @click="activePhoto = null" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors">
+                                <button @click="activePhoto = null" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors cursor-pointer">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="flex-grow bg-slate-950 p-3 sm:p-6 relative overflow-auto flex flex-col justify-center items-center">
-                            <template x-if="activePhoto">
-                                <img :src="activePhoto.file_path" :alt="activePhoto.title" class="max-h-[70vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl border border-slate-800 mx-auto">
+                        <!-- Main Photo Viewing Slider Area -->
+                        <div class="flex-grow bg-slate-950 p-2 sm:p-4 relative overflow-hidden flex flex-col justify-center items-center select-none">
+                            <!-- Prev Arrow Button -->
+                            <template x-if="activePhoto && activePhoto.images && activePhoto.images.length > 1">
+                                <button @click="prevPhoto()" class="absolute left-3 z-10 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white border border-slate-700 hover:border-emerald-500 flex items-center justify-center text-lg transition-all shadow-xl hover:scale-110 active:scale-95 cursor-pointer">
+                                    <i class="fas fa-chevron-left me-0.5"></i>
+                                </button>
                             </template>
-                            <div class="mt-4 text-center max-w-2xl px-2" x-show="activePhoto && activePhoto.caption">
-                                <p class="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed" x-text="activePhoto ? activePhoto.caption : ''"></p>
+
+                            <!-- Active Image -->
+                            <template x-if="activePhoto && activePhoto.images && activePhoto.images.length > 0">
+                                <img :src="activePhoto.images[activePhotoIdx]" :alt="activePhoto.title" class="max-h-[60vh] sm:max-h-[65vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl border border-slate-800 mx-auto transition-all duration-300">
+                            </template>
+
+                            <!-- Next Arrow Button -->
+                            <template x-if="activePhoto && activePhoto.images && activePhoto.images.length > 1">
+                                <button @click="nextPhoto()" class="absolute right-3 z-10 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white border border-slate-700 hover:border-emerald-500 flex items-center justify-center text-lg transition-all shadow-xl hover:scale-110 active:scale-95 cursor-pointer">
+                                    <i class="fas fa-chevron-right ms-0.5"></i>
+                                </button>
+                            </template>
+                        </div>
+
+                        <!-- Bottom Photo Album Thumbnail Strip -->
+                        <div class="p-3 bg-slate-950 border-t border-slate-800 shrink-0 space-y-2" x-show="activePhoto && activePhoto.images && activePhoto.images.length > 0">
+                            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+                                <template x-for="(img, idx) in (activePhoto ? activePhoto.images : [])" :key="idx">
+                                    <button @click="activePhotoIdx = idx" 
+                                            :class="activePhotoIdx === idx ? 'ring-2 ring-emerald-500 scale-105 opacity-100' : 'opacity-50 hover:opacity-100 hover:scale-105'" 
+                                            class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-slate-800 transition-all cursor-pointer bg-slate-900">
+                                        <img :src="img" class="w-full h-full object-cover">
+                                    </button>
+                                </template>
                             </div>
+                            <p class="text-[11px] text-slate-400 font-medium text-center truncate" x-text="activePhoto ? activePhoto.caption : ''"></p>
                         </div>
                     </div>
                 </div>
