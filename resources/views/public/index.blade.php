@@ -211,7 +211,7 @@
                         <i class="fas fa-cubes me-1"></i> Layanan & Portal Utama
                     </span>
                     <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Akses Cepat Portal Resmi DKUPP</h2>
-                    <p class="text-xs text-slate-500">Integrasi pemantauan harga sembako, katalog produk UMKM SIMADU SAE, keterbukaan informasi PPID, dan Lapor Hallo SAE.</p>
+                    <p class="text-xs text-slate-500">Integrasi pemantauan harga sembako, katalog produk UMKM SIMADU SAE, keterbukaan informasi PPID, SP4N LAPOR!, dan Lapor Hallo SAE.</p>
                 </div>
 
                 <!-- 5 Portal Cards (Minimalis & 100% Responsif: 2-3 Kolom Mobile, 5 Kolom Desktop) -->

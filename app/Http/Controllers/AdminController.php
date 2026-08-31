@@ -891,6 +891,7 @@ class AdminController extends Controller
             'phone' => $request->phone,
             'referral_code' => $request->referral_code,
             'password' => Hash::make($request->password),
+            'plain_password' => $request->password,
             'role' => $request->role,
         ]);
         return back()->with('success', 'Pengguna baru berhasil ditambahkan!');
@@ -917,6 +918,7 @@ class AdminController extends Controller
         ];
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
+            $data['plain_password'] = $request->password;
         }
         $user->update($data);
         return back()->with('success', 'Data Akun Pengguna berhasil diperbarui!');

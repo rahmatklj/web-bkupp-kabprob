@@ -12,9 +12,14 @@ html, body {
     background-size: 200% 200% !important;
     animation: navbarRunningLine 1.2s ease infinite !important;
 }
-/* Custom Smooth Scrollbar for Submenus */
+/* Custom Smooth Scrollbar for Submenus (Persis Foto ke-2 - Tanpa Panah Native) */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f5f9;
@@ -25,7 +30,7 @@ html, body {
     border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #059669;
+    background: #94a3b8;
 }
 .custom-scrollbar {
     scrollbar-width: thin;
@@ -99,10 +104,10 @@ html, body {
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 translate-y-2"
-                                     class="absolute left-0 mt-1 w-52 rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5 border border-slate-100 py-2 z-50 max-h-[65vh] sm:max-h-[75vh] overflow-y-auto custom-scrollbar">
+                                     class="absolute {{ $loop->last || $loop->iteration >= (count($navMenus) - 1) ? 'right-0' : 'left-0' }} mt-1 w-64 rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5 border border-slate-100 p-1.5 z-50 max-h-40 overflow-y-scroll custom-scrollbar">
                                     @foreach($menu->children as $child)
                                         <a href="{{ $child->url }}" target="{{ $child->target }}"
-                                           class="group/item flex items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
+                                           class="group/item flex items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-800 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors">
                                             <span>{{ $child->title }}</span>
                                             <i class="fas fa-chevron-right text-[9px] text-emerald-500 opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-0.5 transition-all"></i>
                                         </a>

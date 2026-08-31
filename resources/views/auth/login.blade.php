@@ -125,25 +125,6 @@
                     </div>
                 @endif
 
-                <!-- Demo Account Quick Selector -->
-                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center">Petunjuk / Isi Otomatis Akun Demo:</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" @click="email = 'admin@dkupp.probolinggokab.go.id'; password = 'admin123';" 
-                                :class="email === 'admin@dkupp.probolinggokab.go.id' ? 'bg-emerald-700 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
-                                class="py-2 px-3 rounded-xl text-xs flex flex-col items-center border border-slate-200 transition-all">
-                            <span>Super Admin</span>
-                            <span class="text-[9px] opacity-80">(Auto-isi akun)</span>
-                        </button>
-                        <button type="button" @click="email = 'staf@dkupp.probolinggokab.go.id'; password = 'admin123';" 
-                                :class="email === 'staf@dkupp.probolinggokab.go.id' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
-                                class="py-2 px-3 rounded-xl text-xs flex flex-col items-center border border-slate-200 transition-all">
-                            <span>Staf Pelayanan</span>
-                            <span class="text-[9px] opacity-80">(Auto-isi akun)</span>
-                        </button>
-                    </div>
-                </div>
-
                 <form action="{{ route('login') }}" method="POST" class="space-y-5 text-xs">
                     @csrf
 

@@ -25,6 +25,7 @@
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Username</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Email Administrator</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">No. WhatsApp</th>
+                    <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Kode Referral</th>
                     <th class="px-3 sm:px-6 py-3.5 whitespace-nowrap">Role Akses</th>
                     <th class="px-3 sm:px-6 py-3.5 text-right whitespace-nowrap">Aksi</th>
                 </tr>
@@ -53,13 +54,22 @@
                                 <span class="text-slate-400">-</span>
                             @endif
                         </td>
+                        <td class="px-6 py-4 font-mono text-[11px]">
+                            @if($user->referral_code)
+                                <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-extrabold rounded-lg border border-blue-200/80 shadow-2xs inline-flex items-center gap-1">
+                                    <i class="fas fa-key text-[10px] text-blue-500"></i> {{ $user->referral_code }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 font-sans">-</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold {{ $user->isSuperAdmin() ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800' }}">
                                 {{ $user->isSuperAdmin() ? 'Super Admin' : 'Anggota Staf' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-right space-x-1">
-                            <button @click="showModal = true; editMode = true; showPassword = false; passwordInput = ''; currentUser = {{ json_encode($user) }}" 
+                            <button @click="showModal = true; editMode = true; showPassword = true; currentUser = {{ json_encode($user) }}; passwordInput = currentUser.plain_password || 'Dishub#2026!';" 
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" title="Edit Akun Pengguna">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -185,14 +195,19 @@
                     </div>
                 </div>
 
-                <!-- Field 5: Password Keamanan -->
+                <!-- Field 5: Password Keamanan (Tampil Teks Sandi Aktif) -->
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-800 text-xs mb-1">
-                        Password Keamanan <span class="text-slate-400 font-normal text-[10px]">(Kosongkan jika tidak diubah)</span>
-                    </label>
+                    <div class="flex justify-between items-center">
+                        <label class="block font-bold text-slate-800 text-xs mb-1">
+                            Password Keamanan <span class="text-slate-400 font-normal text-[10px]">(Kosongkan jika tidak diubah)</span>
+                        </label>
+                        <span class="text-[10px] font-bold text-blue-600 flex items-center gap-1">
+                            <i class="fas fa-eye text-[9px]"></i> Terlihat oleh Super Admin
+                        </span>
+                    </div>
                     <div class="relative flex items-center">
                         <input :type="showPassword ? 'text' : 'password'" name="password" x-model="passwordInput" :required="!editMode" placeholder="Contoh: Dishub#2026!" 
-                               class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50/80 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none font-medium text-slate-800 text-xs transition-all shadow-2xs">
+                               class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50/80 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none font-bold text-slate-800 text-xs transition-all shadow-2xs">
                         <button type="button" @click="showPassword = !showPassword" class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer" title="Lihat / Sembunyikan Password">
                             <i class="fas text-sm" :class="showPassword ? 'fa-eye-slash text-blue-600' : 'fa-eye'"></i>
                         </button>
