@@ -3,10 +3,10 @@
     <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 space-y-4 sm:space-y-8">
         
         <!-- 3 Distinct Rounded Card Containers (3 Kolom Menyamping di Mobile & Desktop) -->
-        <div class="grid grid-cols-3 lg:grid-cols-12 gap-2 sm:gap-6 items-stretch">
+        <div class="grid grid-cols-3 lg:grid-cols-12 gap-2 sm:gap-5 items-stretch">
             
-            <!-- KARTU 1: INSTANSI & SOSIAL MEDIA (KIRI - 1 COL MOBILE / 5 COLS DESKTOP) -->
-            <div class="col-span-1 lg:col-span-5 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-7 shadow-xl flex flex-col justify-between space-y-3 sm:space-y-6">
+            <!-- KARTU 1: INSTANSI & SOSIAL MEDIA (KIRI - 1 COL MOBILE / 4 COLS DESKTOP) -->
+            <div class="col-span-1 lg:col-span-4 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-6 shadow-xl flex flex-col justify-between space-y-3 sm:space-y-6">
                 <div class="space-y-2 sm:space-y-3">
                     <!-- Instansi Header Logo + Judul + Interaktif Garis Hijau Toska Berjalan -->
                     <div x-data="{ clicked: false }" 
@@ -77,42 +77,82 @@
                 </div>
             </div>
 
-            <!-- KARTU 2: SCAN KODE QR (TENGAH - 1 COL MOBILE / 3 COLS DESKTOP) -->
-            <div id="footer-qr-code" class="col-span-1 lg:col-span-3 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-7 shadow-xl flex flex-col items-center justify-between text-center space-y-2 sm:space-y-2.5 scroll-mt-24">
+            <!-- KARTU 2: SCAN KODE QR & HALOSAE (SIDE-BY-SIDE BERSAMPINGAN - 5 COLS DESKTOP) -->
+            <div id="footer-qr-code" class="col-span-1 lg:col-span-5 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-5 shadow-xl flex flex-col justify-between space-y-2.5 scroll-mt-24">
                 <div x-data="{ clicked: false }" 
                      @click="clicked = true; setTimeout(() => clicked = false, 2500)" 
                      class="cursor-pointer group select-none w-full">
-                    <span class="text-[9px] sm:text-[11px] font-extrabold text-slate-200 uppercase tracking-wider block group-hover:text-emerald-400 transition-colors line-clamp-1">
-                        SCAN KODE QR
-                    </span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] sm:text-[11px] font-extrabold text-slate-200 uppercase tracking-wider block group-hover:text-emerald-400 transition-colors">
+                            SCAN QR & PENGADUAN HALOSAE
+                        </span>
+                        <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 rounded-full text-[8px] sm:text-[9px] font-extrabold uppercase shrink-0">
+                            Layanan Resmi
+                        </span>
+                    </div>
                     <div class="w-full h-0.5 sm:h-1 bg-slate-800/80 rounded-full mt-0.5 overflow-hidden relative">
                         <div class="h-full bg-gradient-to-r from-emerald-500 via-teal-300 to-emerald-400 rounded-full transition-all duration-500"
-                             :class="clicked ? 'w-full animate-running-line' : 'w-6 sm:w-10 group-hover:w-full mx-auto'"></div>
+                             :class="clicked ? 'w-full animate-running-line' : 'w-6 sm:w-10 group-hover:w-full'"></div>
                     </div>
                 </div>
 
-                <div class="p-1 sm:p-2 bg-white rounded-lg sm:rounded-xl shadow-lg border border-slate-200 inline-block transition-transform hover:scale-105">
-                    @php
-                        $qrRaw = $settings['qr_code_image'] ?? '';
-                        if (empty($qrRaw)) {
-                            $qrRaw = '/uploads/settings/qr_code_dkupp.svg';
-                        }
-                        $qrSrc = (str_starts_with($qrRaw, 'http://') || str_starts_with($qrRaw, 'https://')) ? $qrRaw : asset($qrRaw);
-                    @endphp
-                    <img src="{{ $qrSrc }}" alt="Scan QR Code DKUPP" class="w-16 h-16 sm:w-36 sm:h-36 object-contain rounded-md sm:rounded-lg">
-                </div>
+                <!-- Container 2 Kolom Bersampingan (Kode QR + Halo SAE Card Persis Foto ke-2) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 items-stretch w-full">
+                    
+                    <!-- Kiri: SCAN KODE QR -->
+                    <div class="bg-slate-900/80 rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-700/60 flex flex-col items-center justify-between text-center space-y-1.5">
+                        <div class="p-1.5 sm:p-2 bg-white rounded-lg shadow-lg border border-slate-200 inline-block transition-transform hover:scale-105">
+                            @php
+                                $qrRaw = $settings['qr_code_image'] ?? '';
+                                if (empty($qrRaw)) {
+                                    $qrRaw = '/uploads/settings/qr_code_dkupp.svg';
+                                }
+                                $qrSrc = (str_starts_with($qrRaw, 'http://') || str_starts_with($qrRaw, 'https://')) ? $qrRaw : asset($qrRaw);
+                            @endphp
+                            <img src="{{ $qrSrc }}" alt="Scan QR Code DKUPP" class="w-20 h-20 sm:w-32 sm:h-32 object-contain rounded-md">
+                        </div>
+                        <div>
+                            <a href="{{ $settings['survey_url'] ?? 'https://sukma.jatimprov.go.id/' }}" target="_blank" rel="noopener noreferrer" class="text-[8px] sm:text-[10px] font-extrabold text-emerald-400 hover:underline flex items-center justify-center gap-0.5 leading-tight">
+                                <i class="fas fa-hand-pointer text-[6px] sm:text-[8px]"></i>
+                                <span class="line-clamp-1">Scan QR Portal</span>
+                            </a>
+                            <span class="text-[7.5px] sm:text-[9px] text-slate-400 block font-medium line-clamp-1">Hasil SKM & Layanan</span>
+                        </div>
+                    </div>
 
-                <div>
-                    <a href="{{ $settings['survey_url'] ?? 'https://sukma.jatimprov.go.id/' }}" target="_blank" rel="noopener noreferrer" class="text-[8px] sm:text-xs font-extrabold text-emerald-400 hover:underline flex items-center justify-center gap-0.5 leading-tight">
-                        <i class="fas fa-hand-pointer text-[7px] sm:text-[9px]"></i>
-                        <span class="line-clamp-1">{{ $settings['qr_code_label'] ?? 'Scan QR Portal Pelayanan' }}</span>
+                    <!-- Kanan: LOGO HALLO SAE -->
+                    @php
+                        $waLink = $settings['whatsapp_url'] ?? 'https://wa.me/6281234567890';
+                        $waLogoImg = $settings['whatsapp_logo'] ?? '/uploads/settings/logo_wa_1787796266.jpg';
+                        if (!empty($waLogoImg) && !str_starts_with($waLogoImg, 'http') && !str_starts_with($waLogoImg, 'fa')) {
+                            $waLogoImg = asset($waLogoImg);
+                        }
+                    @endphp
+                    <a href="{{ $waLink }}" target="_blank" rel="noopener noreferrer" 
+                       class="group/halosae bg-slate-900/80 rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-700/60 flex flex-col items-center justify-between text-center space-y-1.5 transition-all hover:border-emerald-400 active:scale-95">
+                        <div class="p-1.5 sm:p-2 bg-white rounded-lg shadow-lg border border-slate-200 inline-block transition-transform group-hover/halosae:scale-105">
+                            @if(!empty($waLogoImg) && (str_starts_with($waLogoImg, 'http') || str_starts_with($waLogoImg, '/')))
+                                <img src="{{ $waLogoImg }}" alt="Logo Halo SAE" class="w-20 h-20 sm:w-32 sm:h-32 object-contain rounded-md">
+                            @else
+                                <div class="w-20 h-20 sm:w-32 sm:h-32 bg-emerald-50 rounded-md flex items-center justify-center text-emerald-600">
+                                    <i class="fab fa-whatsapp text-4xl sm:text-6xl"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <span class="text-[8px] sm:text-[10px] font-extrabold text-emerald-400 hover:underline flex items-center justify-center gap-0.5 leading-tight">
+                                <i class="fab fa-whatsapp text-[6px] sm:text-[8px]"></i>
+                                <span class="line-clamp-1">Halo SAE (WhatsApp)</span>
+                            </span>
+                            <span class="text-[7.5px] sm:text-[9px] text-slate-400 block font-medium line-clamp-1">Lapor &amp; Pengaduan Official</span>
+                        </div>
                     </a>
-                    <span class="text-[8px] sm:text-[10px] text-slate-400 block mt-0.5 font-medium line-clamp-1">DKUPP Kab. Probolinggo</span>
+
                 </div>
             </div>
 
-            <!-- KARTU 3: ALAMAT KANTOR & KONTAK (KANAN - 1 COL MOBILE / 4 COLS DESKTOP) -->
-            <div class="col-span-1 lg:col-span-4 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-7 shadow-xl flex flex-col justify-between space-y-2 sm:space-y-4">
+            <!-- KARTU 3: ALAMAT KANTOR & KONTAK (KANAN - 1 COL MOBILE / 3 COLS DESKTOP) -->
+            <div class="col-span-1 lg:col-span-3 bg-[#0f243e] rounded-xl sm:rounded-3xl border border-slate-700/70 p-2.5 sm:p-6 shadow-xl flex flex-col justify-between space-y-2 sm:space-y-4">
                 <div class="space-y-2 sm:space-y-3">
                     <div x-data="{ clicked: false }" 
                          @click="clicked = true; setTimeout(() => clicked = false, 2500)" 

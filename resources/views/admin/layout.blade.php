@@ -81,9 +81,13 @@
             <!-- Sidebar Header -->
             <div class="h-20 flex items-center px-6 bg-slate-950 border-b border-slate-800 justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl {{ auth()->user()->isSuperAdmin() ? 'bg-emerald-600' : 'bg-blue-600' }} flex items-center justify-center text-white font-extrabold text-sm shadow-md">
-                        {{ auth()->user()->isSuperAdmin() ? 'SA' : 'AG' }}
-                    </div>
+                    @if(auth()->user()->avatar)
+                        <img src="{{ asset(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-xl object-cover border border-emerald-500 shadow-md shrink-0">
+                    @else
+                        <div class="w-9 h-9 rounded-xl {{ auth()->user()->isSuperAdmin() ? 'bg-emerald-600' : 'bg-blue-600' }} flex items-center justify-center text-white font-extrabold text-sm shadow-md shrink-0">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                    @endif
                     <div>
                         <h1 class="font-extrabold text-white text-sm tracking-wide line-clamp-1">{{ auth()->user()->name }}</h1>
                         <p class="text-[10px] {{ auth()->user()->isSuperAdmin() ? 'text-emerald-400' : 'text-blue-400' }} font-extrabold uppercase tracking-wider">

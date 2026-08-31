@@ -33,10 +33,14 @@
             <tbody class="divide-y divide-slate-100">
                 @foreach($users as $user)
                     <tr class="hover:bg-slate-50/80 transition-colors">
-                        <td class="px-6 py-4 font-bold text-slate-800 flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full {{ $user->isSuperAdmin() ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800' }} font-bold text-xs flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
-                            </div>
+                        <td class="px-6 py-4 font-bold text-slate-800 flex items-center gap-2.5">
+                            @if($user->avatar)
+                                <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover border border-emerald-500 shadow-2xs shrink-0">
+                            @else
+                                <div class="w-8 h-8 rounded-full {{ $user->isSuperAdmin() ? 'bg-orange-100 text-orange-800 border border-orange-200' : 'bg-blue-100 text-blue-800 border border-blue-200' }} font-extrabold text-xs flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                </div>
+                            @endif
                             <span>{{ $user->name }}</span>
                         </td>
                         <td class="px-6 py-4 font-mono text-[11px] text-slate-600">
@@ -101,7 +105,7 @@
                     </div>
                     <div>
                         <h3 class="font-extrabold text-slate-900 text-base tracking-tight" x-text="editMode ? 'Edit Akun Pengguna' : 'Tambah Akun Pengguna Baru'"></h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Atur profil, WhatsApp, Kode Referral, dan kata sandi pengguna</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Atur Foto Profil (PP), WhatsApp, Kode Referral, dan kata sandi pengguna</p>
                     </div>
                 </div>
                 <button type="button" @click="showModal = false" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer">
@@ -109,11 +113,31 @@
                 </button>
             </div>
 
-            <form :action="editMode ? '/admin/users/' + currentUser.id : '{{ route('admin.users.store') }}'" method="POST" class="space-y-4 text-xs">
+            <form :action="editMode ? '/admin/users/' + currentUser.id : '{{ route('admin.users.store') }}'" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
+
+                <!-- Field 0: Upload Foto Profil / PP (Profile Picture) -->
+                <div class="flex items-center gap-4 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-2xl">
+                    <div class="relative w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-500 shadow-md shrink-0 bg-slate-200 flex items-center justify-center">
+                        <template x-if="currentUser.avatar">
+                            <img :src="currentUser.avatar" class="w-full h-full object-cover">
+                        </template>
+                        <template x-if="!currentUser.avatar">
+                            <div class="w-full h-full bg-emerald-600 text-white font-extrabold text-lg flex items-center justify-center uppercase">
+                                <span x-text="currentUser.name ? currentUser.name.substring(0, 1) : 'U'"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="space-y-1 flex-1">
+                        <label class="block font-bold text-slate-800 text-xs">Foto Profil (PP Pengguna)</label>
+                        <input type="file" name="avatar_file" accept="image/png,image/jpeg,image/jpg,image/webp" 
+                               class="block w-full text-[11px] text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                        <p class="text-[9px] text-slate-400">Format: JPG, PNG, WEBP (Maksimal 5MB)</p>
+                    </div>
+                </div>
                 
                 <!-- Field 1: Nama Lengkap Pengguna -->
                 <div class="space-y-1">

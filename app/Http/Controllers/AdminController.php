@@ -881,14 +881,29 @@ class AdminController extends Controller
             'username' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',
             'referral_code' => 'nullable|string|max:50',
+            'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'password' => 'required|min:6',
             'role' => 'required|in:super_admin,anggota',
         ]);
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar_file')) {
+            $file = $request->file('avatar_file');
+            $filename = 'avatar_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $targetDir = public_path('uploads/avatars');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+            $file->move($targetDir, $filename);
+            $avatarPath = '/uploads/avatars/' . $filename;
+        }
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'username' => $request->username,
             'phone' => $request->phone,
+            'avatar' => $avatarPath,
             'referral_code' => $request->referral_code,
             'password' => Hash::make($request->password),
             'plain_password' => $request->password,
@@ -906,6 +921,7 @@ class AdminController extends Controller
             'username' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',
             'referral_code' => 'nullable|string|max:50',
+            'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'role' => 'required|in:super_admin,anggota',
         ]);
         $data = [
@@ -916,6 +932,19 @@ class AdminController extends Controller
             'referral_code' => $request->referral_code,
             'role' => $request->role,
         ];
+        if ($request->hasFile('avatar_file')) {
+            if ($user->avatar) {
+                \App\Traits\DeletesUploadFiles::deleteUploadFile($user->avatar);
+            }
+            $file = $request->file('avatar_file');
+            $filename = 'avatar_' . time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $targetDir = public_path('uploads/avatars');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+            $file->move($targetDir, $filename);
+            $data['avatar'] = '/uploads/avatars/' . $filename;
+        }
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
             $data['plain_password'] = $request->password;
